@@ -1,5 +1,7 @@
 # PRR - Laboratoire 2 : Exclusion mutuelle
 
+**Changer les chemins pour des chemins relatifs lors du rendu.**
+
 ## Administratif
 
 - Temps à disposition : 10 périodes
@@ -86,6 +88,8 @@ variable partagée en section critique avant sa modification.
 
 Avant libération de la section critique, la nouvelle valeur de la variable sera transmise aux autres
 processus formant l'environnement.
+
+![Graphique d'implémentation](img/GraphiqueImplémentation.png)
 
 ## Hypothèses
 
