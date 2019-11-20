@@ -12,24 +12,41 @@ thanks to the Carvalho-Roucairol algorithm.
  */
 package main
 
-import "fmt"
+import (
+    "bufio"
+    "fmt"
+    "os"
+    "../network"
+    "strconv"
+)
 
 // TODO: Maybe this should be a go routine triggered by a controller
-func main() {
+func clientProcess(commWithMutexProcess chan int) {
     // Shared variable across processes
     var shared int32
-
+    reader := bufio.NewReader(os.Stdin)
+    input,_ := reader.ReadString('\n')
     // Ask the user what he wants to do
     // Allow him to read or write the shared variable
 
     // CASE READ
-    // Just prints the variable to stdout
-    fmt.Println(shared)
+    if input[0] == 'r' {
+        // Just prints the variable to stdout
+        fmt.Println(shared)
+    }
 
-    // CASE WRITE
-    // Prints the variable to stdout
-    // Calls the Carvalho - Roucairol algorithm to acquire critical section
-    // Then modifies the variable
-    // Then notifies the other processes
-    // Then liberates the critical section
+    if input[0] == 'w' {
+        // CASE WRITE
+        newValue, _ := strconv.Atoi(input[1:])
+        // Prints the variable to stdout
+        fmt.Println(shared)
+        // Calls the Carvalho - Roucairol algorithm to acquire critical section
+        commWithMutexProcess <- network.Demand
+        commWithMutexProcess <- network.Wait
+        // Then modifies the variable
+        shared = int32(newValue)
+        // Then notifies the other processes
+        commWithMutexProcess <- network.End
+        // Then liberates the critical section
+    }
 }

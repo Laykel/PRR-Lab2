@@ -11,6 +11,9 @@ package network
 // TODO: Maybe parameterize this through json?
 const (
     Port = 9706
+    Demand = 0
+    Wait = 1
+    End = 2
 )
 
 type RequestCS struct {
@@ -23,3 +26,4 @@ type ReleaseCS struct {
     i uint32
     value int32
 }
+
