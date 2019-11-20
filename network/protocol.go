@@ -38,7 +38,7 @@ type ReleaseCS struct {
 }
 
 // Encode given struct as big endian bytes and return bytes buffer
-func encode(message interface{}) *bytes.Buffer {
+func encode(message interface{}) []byte {
 	buffer := &bytes.Buffer{}
 	// Write struct's data as bytes
 	err := binary.Write(buffer, binary.BigEndian, message)
@@ -46,6 +46,6 @@ func encode(message interface{}) *bytes.Buffer {
 		log.Fatal(err)
 	}
 
-	return buffer
+	return buffer.Bytes()
 }
 
