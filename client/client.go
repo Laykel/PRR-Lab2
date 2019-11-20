@@ -1,5 +1,8 @@
 /*
-Main entrypoint for the mutual exclusion test application.
+Lab 2 - mutual exclusion
+File: client/client.go
+Authors: Jael Dubey, Luc Wachter
+Go version: 1.13.4 (linux/amd64)
 
 Provides a simple console user interface to access and modify a variable
 shared between all processes.
@@ -11,8 +14,9 @@ package main
 
 import "fmt"
 
-// TODO: Maybe, this should be a go routine triggered by a controller
+// TODO: Maybe this should be a go routine triggered by a controller
 func main() {
+    // Shared variable across processes
     var shared int64
 
     // Ask the user what he wants to do
