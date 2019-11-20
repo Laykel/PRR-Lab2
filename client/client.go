@@ -17,7 +17,7 @@ import "fmt"
 // TODO: Maybe this should be a go routine triggered by a controller
 func main() {
     // Shared variable across processes
-    var shared int64
+    var shared int32
 
     // Ask the user what he wants to do
     // Allow him to read or write the shared variable
