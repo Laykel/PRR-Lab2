@@ -10,17 +10,17 @@ shared between all processes.
 The access to the shared variable is guaranteed to be mutually exclusive
 thanks to the Carvalho-Roucairol algorithm.
  */
-package main
+package client
 
 import (
+    "../network"
     "bufio"
     "fmt"
     "os"
-    "../network"
     "strconv"
 )
 
-// TODO: Maybe this should be a go routine triggered by a controller
+// Ask user for their choice and either prints value or ask for CS and modify value
 func clientProcess(commWithMutexProcess chan int) {
     // Shared variable across processes
     var shared int32
@@ -29,6 +29,7 @@ func clientProcess(commWithMutexProcess chan int) {
     // Ask the user what he wants to do
     // Allow him to read or write the shared variable
 
+    // TODO: For loop
     // CASE READ
     if input[0] == 'r' {
         // Just prints the variable to stdout

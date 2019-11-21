@@ -10,9 +10,9 @@ encoding and decoding functions for messages
 package network
 
 import (
-	"bytes"
-	"encoding/binary"
-	"log"
+    "bytes"
+    "encoding/binary"
+    "log"
 )
 
 // Networking values
@@ -26,19 +26,19 @@ const (
 
 // Message to request the critical section
 type RequestCS struct {
-	timestamp uint32
-	process   uint32
+    ProcessNbr uint32
+	Timestamp  uint32
 }
 
 // Message to release the critical section
 type ReleaseCS struct {
-	timestamp uint32
-	process   uint32
-	value     int32
+    ProcessNbr uint32
+	Timestamp  uint32
+	Value      int32
 }
 
 // Encode given struct as big endian bytes and return bytes buffer
-func encode(message interface{}) []byte {
+func Encode(message interface{}) []byte {
 	buffer := &bytes.Buffer{}
 	// Write struct's data as bytes
 	err := binary.Write(buffer, binary.BigEndian, message)
@@ -49,3 +49,24 @@ func encode(message interface{}) []byte {
 	return buffer.Bytes()
 }
 
+// Decode bytes from RequestCS back to struct
+func DecodeRequest(buffer []byte) RequestCS {
+	message := RequestCS{}
+	err := binary.Read(bytes.NewReader(buffer), binary.BigEndian, &message)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return message
+}
+
+// Decode bytes from ReleaseCS back to struct
+func DecodeRelease(buffer []byte) ReleaseCS {
+    message := ReleaseCS{}
+    err := binary.Read(bytes.NewReader(buffer), binary.BigEndian, &message)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    return message
+}
