@@ -6,10 +6,7 @@ Go version: 1.13.4 (linux/amd64)
 
 Provides a simple console user interface to access and modify a variable
 shared between all processes.
-
-The access to the shared variable is guaranteed to be mutually exclusive
-thanks to the Carvalho-Roucairol algorithm.
- */
+*/
 package client
 
 import (
