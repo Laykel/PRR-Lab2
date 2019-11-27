@@ -1,3 +1,17 @@
+/*
+Lab 2 - mutual exclusion
+File: mutex/mutex.go
+Authors: Jael Dubey, Luc Wachter
+Go version: 1.13.4 (linux/amd64)
+
+Main entrypoint for the mutual exclusion program.
+
+The access to the shared variable is guaranteed to be mutually exclusive
+thanks to the Carvalho-Roucairol algorithm.
+
+This file contains the central part of the algorithm, receiving requests
+from the client and forwarding them to the network manager.
+*/
 package main
 
 import (
@@ -17,8 +31,8 @@ func demandWait(ch chan bool) {
 	ch <- true
 }
 
+// Main entrypoint for the mutual exclusion program
 func main() {
-
 	// Create channels which communicate with the Client Process
 	demand := make(chan bool)
 	wait := make(chan bool)
