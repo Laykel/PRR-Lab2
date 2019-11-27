@@ -13,41 +13,48 @@ thanks to the Carvalho-Roucairol algorithm.
 package client
 
 import (
-    "../network"
     "bufio"
     "fmt"
     "os"
     "strconv"
+    "strings"
 )
 
+// TODO comments, prompt, and errors checkin
 // Ask user for their choice and either prints value or ask for CS and modify value
-func clientProcess(commWithMutexProcess chan int) {
+func PromptClient(demand chan bool, wait chan bool, end chan bool) {
     // Shared variable across processes
     var shared int32
     reader := bufio.NewReader(os.Stdin)
-    input,_ := reader.ReadString('\n')
+
     // Ask the user what he wants to do
     // Allow him to read or write the shared variable
 
-    // TODO: For loop
-    // CASE READ
-    if input[0] == 'r' {
-        // Just prints the variable to stdout
-        fmt.Println(shared)
-    }
+    for {
+        input,_ := reader.ReadString('\n')
 
-    if input[0] == 'w' {
-        // CASE WRITE
-        newValue, _ := strconv.Atoi(input[1:])
-        // Prints the variable to stdout
-        fmt.Println(shared)
-        // Calls the Carvalho - Roucairol algorithm to acquire critical section
-        commWithMutexProcess <- network.Demand
-        commWithMutexProcess <- network.Wait
-        // Then modifies the variable
-        shared = int32(newValue)
-        // Then notifies the other processes
-        commWithMutexProcess <- network.End
-        // Then liberates the critical section
+        tokens := strings.Split(input[:len(input)-1], " ")
+
+        // CASE READ
+        if tokens[0] == "r" {
+            // Just prints the variable to stdout
+            fmt.Println(shared)
+        }
+
+        if tokens[0] == "w" {
+            // CASE WRITE
+            newValue, _ := strconv.ParseInt(tokens[1], 10, 32)
+            // Prints the variable to stdout
+            fmt.Println(shared)
+            // Calls the Carvalho - Roucairol algorithm to acquire critical section
+            demand <- true
+            // Wait until the CS is free
+            <-wait
+            // Then modifies the variable
+            shared = int32(newValue)
+            // Then notifies the other processes
+            end <- true
+            // Then liberates the critical section
+        }
     }
 }
