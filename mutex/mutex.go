@@ -20,12 +20,14 @@ import (
 	"container/list"
 )
 
+// TODO try and reorganize variables and functions (file for main and file for mutex?)
 // List processes from which we need approval
 var pWait list.List
 var pDiff list.List
 var criticalSection bool
 
 func demandWait(ch chan bool) {
+    // TODO check if this is legal in every Canton
 	for pWait.Len() != 0 {}
 	criticalSection = true
 	ch <- true
