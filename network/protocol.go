@@ -16,6 +16,7 @@ import (
 )
 
 // Networking values
+// Read constants from parameters.json file
 type Parameters struct {
 	InitialPort uint16 `json:"initial_port"`
 	NbProcesses uint8  `json:"nb_processes"`

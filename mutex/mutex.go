@@ -15,9 +15,9 @@ from the client and forwarding them to the network manager.
 package main
 
 import (
-	"../client"
-	"../network"
 	"container/list"
+	"github.com/Laykel/PRR-Lab2/client"
+	"github.com/Laykel/PRR-Lab2/network"
 )
 
 // TODO try and reorganize variables and functions (file for main and file for mutex?)
@@ -27,8 +27,9 @@ var pDiff list.List
 var criticalSection bool
 
 func demandWait(ch chan bool) {
-    // TODO check if this is legal in every Canton
-	for pWait.Len() != 0 {}
+	// TODO check if this is legal in every Canton
+	for pWait.Len() != 0 {
+	}
 	criticalSection = true
 	ch <- true
 }
@@ -54,10 +55,10 @@ func main() {
 		select {
 		case <-demand:
 			timestamp++
-	//		currentDemand = true
-	//		demandTimestamp = timestamp
+			//		currentDemand = true
+			//		demandTimestamp = timestamp
 
-			for i := uint8(0); i < parameters.NbProcesses ; i++  {
+			for i := uint8(0); i < parameters.NbProcesses; i++ {
 				// TODO REQ(currentDemand,i)
 			}
 
@@ -66,7 +67,7 @@ func main() {
 		case <-end:
 			timestamp++
 			criticalSection = false
-	//		currentDemand = false
+			//		currentDemand = false
 
 			for e := pDiff.Front(); e != nil; e = e.Next() {
 				// TODO OK(timestamp, e.Value)
