@@ -15,15 +15,22 @@ from the client and forwarding them to the network manager.
 package main
 
 import (
+	"../client"
+	"../network"
 	"container/list"
-	"github.com/Laykel/PRR-Lab2/client"
-	"github.com/Laykel/PRR-Lab2/network"
+	"os"
+	"strconv"
 )
 
 // TODO try and reorganize variables and functions (file for main and file for mutex?)
 // List processes from which we need approval
 var pWait list.List
 var pDiff list.List
+
+type listElem struct {
+	ProcessNbr uint8
+}
+
 var criticalSection bool
 
 func demandWait(ch chan bool) {
@@ -39,9 +46,13 @@ func main() {
 	// Create channels which communicate with the Client Process
 	demand := make(chan bool)
 	wait := make(chan bool)
-	end := make(chan bool)
+	end := make(chan int32)
 
-	var timestamp uint16
+	// Create channels which communicate with the Network Process
+	req := make(chan network.RequestCS)
+	ok := make(chan network.ReleaseCS)
+
+	var timestamp uint32
 	//var demandTimestamp uint16
 	//var currentDemand bool
 
@@ -49,6 +60,12 @@ func main() {
 
 	// Launch Client Process
 	go client.PromptClient(demand, wait, end)
+
+	// Launch Server Process
+	go network.Server(req, ok)
+
+	// TODO Handle arguments
+	tmp, _ := strconv.Atoi(os.Args[1])
 
 	// Infinite loop
 	for {
@@ -58,19 +75,32 @@ func main() {
 			//		currentDemand = true
 			//		demandTimestamp = timestamp
 
-			for i := uint8(0); i < parameters.NbProcesses; i++ {
-				// TODO REQ(currentDemand,i)
+			for e := pWait.Front(); e != nil; e = e.Next() {
+				request := network.RequestCS{
+					ReqType:    network.REQ_TYPE,
+					ProcessNbr: uint8(tmp),
+					Timestamp:  timestamp,
+				}
+
+				network.SendReq(request, e.Value.(listElem).ProcessNbr)
 			}
 
 			go demandWait(wait)
 
-		case <-end:
+		case val := <-end:
 			timestamp++
 			criticalSection = false
 			//		currentDemand = false
 
 			for e := pDiff.Front(); e != nil; e = e.Next() {
-				// TODO OK(timestamp, e.Value)
+				ok := network.ReleaseCS{
+					ReqType:    network.OK_TYPE,
+					ProcessNbr: uint8(tmp),
+					Timestamp:  timestamp,
+					Value:      val,
+				}
+
+				network.SendOk(ok, e.Value.(listElem).ProcessNbr)
 			}
 
 			pWait = pDiff

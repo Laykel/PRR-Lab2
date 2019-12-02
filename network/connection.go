@@ -13,10 +13,9 @@ package network
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"net"
-	"os"
+	"strconv"
 )
 
 var parameters Parameters
@@ -28,13 +27,13 @@ var (
 )
 
 // Main TCP server entrypoint
-func Server() {
+func Server(req chan RequestCS, ok chan ReleaseCS) {
 	listener, err := net.Listen("tcp", "localhost:"+string(parameters.InitialPort))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	go broadcaster()
+	go broadcaster(req)
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -45,7 +44,7 @@ func Server() {
 	}
 }
 
-func broadcaster() {
+func broadcaster(req chan RequestCS) {
 	clients := make(map[chan<- string]bool) // all connected clients
 	for {
 		select {
@@ -61,6 +60,19 @@ func broadcaster() {
 		case cli := <-leaving:
 			delete(clients, cli)
 			close(cli)
+
+		/*case request := <-req:
+			reqType := request.ReqType
+			reqTimestamp := request.Timestamp
+			reqProcessNb := request.ProcessNbr
+
+			if request.ReqType == REQ_TYPE {
+				for cli := range clients {
+
+				}
+			}*/
+
+
 		}
 	}
 }
@@ -88,25 +100,35 @@ func handleConn(conn net.Conn) {
 	conn.Close()
 }
 
-// Main TCP client entrypoint
-func Client() {
-	conn, err := net.Dial("tcp", "localhost:8000")
+func SendReq(msg RequestCS, recipient uint8) {
+
+	conn, err := net.Dial("tcp", "localhost:" + strconv.Itoa(int(Params.InitialPort + uint16(recipient))))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	done := make(chan struct{})
-
-	go func() {
-		io.Copy(os.Stdout, conn) // NOTE: ignoring errors
-		log.Println("done")
-		done <- struct{}{} // signal the main goroutine
-	}()
-
-	if _, err := io.Copy(conn, os.Stdin); err != nil {
+	// Send message
+	_, err = fmt.Fprint(conn, Encode(msg))
+	if err != nil {
 		log.Fatal(err)
 	}
-	conn.Close()
 
-	<-done // wait for background goroutine to finish
+	conn.Close()
+}
+
+
+func SendOk(msg ReleaseCS, recipient uint8) {
+
+	conn, err := net.Dial("tcp", "localhost:" + strconv.Itoa(int(Params.InitialPort + uint16(recipient))))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Send message
+	_, err = fmt.Fprint(conn, Encode(msg))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conn.Close()
 }

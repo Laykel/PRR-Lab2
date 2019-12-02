@@ -15,6 +15,12 @@ import (
 	"log"
 )
 
+const (
+	REQ_TYPE = 0
+	OK_TYPE  = 1
+)
+
+
 // Networking values
 // Read constants from parameters.json file
 type Parameters struct {
@@ -22,15 +28,19 @@ type Parameters struct {
 	NbProcesses uint8  `json:"nb_processes"`
 }
 
+var Params Parameters
+
 // Message to request the critical section
 type RequestCS struct {
-	ProcessNbr uint32
+	ReqType    uint8
+	ProcessNbr uint8
 	Timestamp  uint32
 }
 
 // Message to release the critical section
 type ReleaseCS struct {
-	ProcessNbr uint32
+	ReqType    uint8
+	ProcessNbr uint8
 	Timestamp  uint32
 	Value      int32
 }
