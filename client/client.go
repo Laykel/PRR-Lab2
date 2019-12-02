@@ -10,48 +10,68 @@ shared between all processes.
 package client
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"strconv"
-	"strings"
+    "bufio"
+    "fmt"
+    "os"
+    "strconv"
+    "strings"
 )
 
-// TODO comments, prompt, and errors checkin
+// Display a prompt for the user with instructions
+func prompt() {
+   fmt.Println("Commands: [r to read variable], [w <integer> to write to variable], [q to quit].")
+   fmt.Print("> ")
+}
+
+// TODO errors checking
 // Ask user for their choice and either prints value or ask for CS and modify value
 func PromptClient(demand chan bool, wait chan bool, end chan bool) {
 	// Shared variable across processes
 	var shared int32
+
 	reader := bufio.NewReader(os.Stdin)
 
-	// Ask the user what he wants to do
-	// Allow him to read or write the shared variable
-
 	for {
+        // Ask the user what he wants to do
+        prompt()
 		input, _ := reader.ReadString('\n')
 
 		tokens := strings.Split(input[:len(input)-1], " ")
 
-		// CASE READ
-		if tokens[0] == "r" {
-			// Just prints the variable to stdout
-			fmt.Println(shared)
-		}
+		switch tokens[0] {
+        // The user wants to read the variable
+        case "r":
+            // Just prints the variable to stdout
+            fmt.Println(shared)
 
-		if tokens[0] == "w" {
-			// CASE WRITE
-			newValue, _ := strconv.ParseInt(tokens[1], 10, 32)
-			// Prints the variable to stdout
-			fmt.Println(shared)
-			// Calls the Carvalho - Roucairol algorithm to acquire critical section
-			demand <- true
-			// Wait until the CS is free
-			<-wait
-			// Then modifies the variable
-			shared = int32(newValue)
-			// Then notifies the other processes
-			end <- true
-			// Then liberates the critical section
-		}
+        // The user wants to write to the variable
+        case "w":
+            // TODO check value
+            newValue, _ := strconv.ParseInt(tokens[1], 10, 32)
+            fmt.Println(shared)
+
+            // Call the Carvalho - Roucairol algorithm to acquire critical section
+            demand <- true
+            // Wait until the CS is free
+            <-wait
+            // START of critical section
+
+            // Modify the variable
+            shared = int32(newValue)
+
+            // END of critical section
+            // Then liberate the critical section
+            end <- true
+
+            fmt.Println(shared)
+
+        // The user wants to quit the program
+        case "q":
+            // TODO Quit the program (channel to mutex)
+
+        // Unknown command
+        default:
+            fmt.Println("This is not one of the allowed commands. Please read the instructions.")
+        }
 	}
 }
