@@ -42,19 +42,16 @@ func Listen(processNbr uint8, req chan []byte) {
 func handleConnection(conn net.Conn, req chan []byte) {
 	defer conn.Close()
 
+    // Read from conn
+	input := bufio.NewScanner(conn)
+	input.Scan()
+
+	message := input.Bytes()
+
 	fmt.Println(conn.RemoteAddr().String())
-	fmt.Println("lol")
-
-	// Read from conn
-	bufferBytes, err := bufio.NewReader(conn).ReadBytes('\n')
-	if err != nil {
-		log.Println("client left..")
-
-		return
-	}
 
 	// Send byte array to mutex
-	req <- bufferBytes
+	req <- message
 }
 
 // Send bytes to recipient (port number calculated from initial port)
@@ -68,7 +65,7 @@ func Send(message []byte, recipient uint8) {
 	defer conn.Close()
 
 	// Send encoded message
-	_, err = fmt.Fprintln(conn, message)
+    _, err = conn.Write(message)
 	if err != nil {
 		log.Fatal(err)
 	}
