@@ -15,20 +15,20 @@ from the client and forwarding them to the network manager.
 package main
 
 import (
-    "container/list"
     "../client"
     "../network"
     "os"
-    "strconv"
+	"strconv"
 )
 
 // TODO try and reorganize variables and functions (file for main and file for mutex?)
 // List processes from which we need approval
-var pWait list.List
-var pDiff list.List
+//var pWait list.List
+var pWait = make(map[uint8]bool)
+var pDiff = make(map[uint8]bool)
 
 var timestamp uint32
-var demandTimestamp uint16
+var demandTimestamp uint32
 var currentDemand bool
 
 type listElem struct {
@@ -37,9 +37,17 @@ type listElem struct {
 
 var criticalSection bool
 
+// Max returns the larger of x or y.
+func Max(x, y int64) int64 {
+	if x < y {
+		return y
+	}
+	return x
+}
+
 func demandWait(ch chan bool) {
 	// TODO check if this is legal in every Canton
-	for pWait.Len() != 0 {
+	for len(pWait) != 0 {
 	}
 	criticalSection = true
 	ch <- true
@@ -48,10 +56,10 @@ func demandWait(ch chan bool) {
 func makeDemand(idArg int, wait chan bool) {
 	timestamp++
 	currentDemand = true
-	demandTimestamp = uint16(timestamp)
+	demandTimestamp = timestamp
 
 	// For every process in pWait
-	for e := pWait.Front(); e != nil; e = e.Next() {
+	for k := range pWait {
 		request := network.RequestCS{
 			ReqType:    network.ReqType,
 			ProcessNbr: uint8(idArg),
@@ -59,7 +67,7 @@ func makeDemand(idArg int, wait chan bool) {
 		}
 
 		// Encode message and send to recipient
-		network.Send(network.Encode(request), e.Value.(listElem).ProcessNbr)
+		network.Send(network.Encode(request), k)
 	}
 
 	demandWait(wait)
@@ -70,8 +78,7 @@ func endDemand(idArg int, val int32) {
 	criticalSection = false
 	currentDemand = false
 
-	// For every process in pDiff
-	for e := pDiff.Front(); e != nil; e = e.Next() {
+	for k := range pDiff {
 		ok := network.ReleaseCS{
 			ReqType:    network.OkType,
 			ProcessNbr: uint8(idArg),
@@ -80,11 +87,59 @@ func endDemand(idArg int, val int32) {
 		}
 
 		// Encode message and send to recipient
-		network.Send(network.Encode(ok), e.Value.(listElem).ProcessNbr)
+		network.Send(network.Encode(ok), k)
 	}
 
 	pWait = pDiff
-	pDiff.Init()
+	pDiff = make(map[uint8]bool)
+}
+
+func okReceive(receiveTimestamp uint32, processNbr uint8) {
+	timestamp = uint32(Max(int64(timestamp), int64(receiveTimestamp)) + 1)
+
+	delete(pWait, processNbr)
+}
+
+func recReceive(idArg int, val int32, receiveTimestamp uint32, processNbr uint8) {
+	timestamp = uint32(Max(int64(timestamp), int64(receiveTimestamp)) + 1)
+
+	if currentDemand == false {
+		ok := network.ReleaseCS{
+			ReqType:    network.OkType,
+			ProcessNbr: uint8(idArg),
+			Timestamp:  timestamp,
+			Value:      val,
+		}
+
+		// Encode message and send to recipient
+		network.Send(network.Encode(ok), processNbr)
+		pWait[processNbr] = true
+	} else {
+		if criticalSection || demandTimestamp < receiveTimestamp || ((demandTimestamp == receiveTimestamp) && (idArg < int(processNbr))) {
+			pDiff[processNbr] = true
+		} else {
+			ok := network.ReleaseCS{
+				ReqType:    network.OkType,
+				ProcessNbr: uint8(idArg),
+				Timestamp:  timestamp,
+				Value:      val,
+			}
+
+			// Encode message and send to recipient
+			network.Send(network.Encode(ok), processNbr)
+			pWait[processNbr] = true
+
+			request := network.RequestCS{
+				ReqType:    network.ReqType,
+				ProcessNbr: uint8(idArg),
+				Timestamp:  timestamp,
+			}
+
+			// Encode message and send to recipient
+			network.Send(network.Encode(request), processNbr)
+
+		}
+	}
 }
 
 // Main entrypoint for the mutual exclusion program
@@ -125,6 +180,14 @@ func main() {
         // Client releases critical section
 		case val := <-end:
 			go endDemand(idArg, val)
+
+		// Other site releases critical section via Network
+		case okReceived := <-ok:
+			go okReceive(okReceived.Timestamp, okReceived.ProcessNbr)
+
+		// Other site asks for critical section
+		case reqReceived := <- req:
+			go recReceive(idArg, 0, reqReceived.Timestamp, reqReceived.ProcessNbr)
 
         case <-quit:
             return
