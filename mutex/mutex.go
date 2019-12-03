@@ -56,8 +56,6 @@ func main() {
 	//var demandTimestamp uint16
 	//var currentDemand bool
 
-	var parameters network.Parameters
-
 	// Launch Client Process
 	go client.PromptClient(demand, wait, end)
 
@@ -77,7 +75,7 @@ func main() {
 
 			for e := pWait.Front(); e != nil; e = e.Next() {
 				request := network.RequestCS{
-					ReqType:    network.REQ_TYPE,
+					ReqType:    network.ReqType,
 					ProcessNbr: uint8(tmp),
 					Timestamp:  timestamp,
 				}
@@ -94,7 +92,7 @@ func main() {
 
 			for e := pDiff.Front(); e != nil; e = e.Next() {
 				ok := network.ReleaseCS{
-					ReqType:    network.OK_TYPE,
+					ReqType:    network.OkType,
 					ProcessNbr: uint8(tmp),
 					Timestamp:  timestamp,
 					Value:      val,

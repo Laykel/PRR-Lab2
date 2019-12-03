@@ -18,8 +18,6 @@ import (
 	"strconv"
 )
 
-var parameters Parameters
-
 var (
 	entering = make(chan chan<- string) // Channel of channels
 	leaving  = make(chan chan<- string)
@@ -28,7 +26,7 @@ var (
 
 // Main TCP server entrypoint
 func Server(req chan RequestCS, ok chan ReleaseCS) {
-	listener, err := net.Listen("tcp", "localhost:"+string(parameters.InitialPort))
+	listener, err := net.Listen("tcp", "localhost:"+string(Params.InitialPort))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -14,13 +14,13 @@ func TestEncode(t *testing.T) {
 	}{
 		{
 			"Test RequestCS message encoding",
-			RequestCS{28, 1},
-			[]byte{0, 0, 0, 28, 0, 0, 0, 1},
+			RequestCS{ReqType, 28, 1},
+			[]byte{0, 28, 0, 0, 0, 1},
 		},
 		{
 			"Test ReleaseCS message encoding",
-			ReleaseCS{56, 3, 45780},
-			[]byte{0, 0, 0, 56, 0, 0, 0, 3, 0, 0, 178, 212},
+			ReleaseCS{OkType, 56, 3, 45780},
+			[]byte{1, 56, 0, 0, 0, 3, 0, 0, 178, 212},
 		},
 	}
 
@@ -46,8 +46,8 @@ func TestDecodeRequest(t *testing.T) {
 	}{
 		{
 			"Test decoding request message",
-			[]byte{0, 0, 0, 28, 0, 0, 0, 12},
-			RequestCS{28, 12},
+			[]byte{0, 28, 0, 0, 0, 12},
+			RequestCS{ReqType, 28, 12},
 		},
 	}
 
@@ -73,8 +73,8 @@ func TestDecodeRelease(t *testing.T) {
 	}{
 		{
 			"Test decoding release message",
-			[]byte{0, 0, 0, 34, 0, 0, 0, 12, 0, 0, 0, 89},
-			ReleaseCS{34, 12, 89},
+			[]byte{1, 34, 0, 0, 0, 12, 0, 0, 0, 89},
+			ReleaseCS{OkType, 34, 12, 89},
 		},
 	}
 

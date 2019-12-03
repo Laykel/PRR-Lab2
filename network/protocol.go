@@ -16,16 +16,15 @@ import (
 )
 
 const (
-	REQ_TYPE = 0
-	OK_TYPE  = 1
+	ReqType = 0
+	OkType  = 1
 )
-
 
 // Networking values
 // Read constants from parameters.json file
 type Parameters struct {
 	InitialPort uint16 `json:"initial_port"`
-	NbProcesses uint8  `json:"nb_processes"`
+	NbProcesses uint8  `json:"nb_of_processes"`
 }
 
 var Params Parameters
