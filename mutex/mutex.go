@@ -15,10 +15,10 @@ from the client and forwarding them to the network manager.
 package main
 
 import (
-    "encoding/json"
-    "fmt"
-    "github.com/Laykel/PRR-Lab2/client"
-	"github.com/Laykel/PRR-Lab2/network"
+	"../client"
+	"../network"
+	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -93,13 +93,24 @@ func endDemand(processId uint8, val int32) {
 	criticalSection = false
 	currentDemand = false
 
+	// We send the new value to everybody
+	for i := uint8(0); i < network.Params.NbProcesses ; i++ {
+		if processId != i {
+			val := network.SetVariable{
+				ReqType: network.ValType,
+				Value:   val,
+			}
+			network.Send(network.Encode(val), i)
+		}
+	}
+
 	for k := range pDiff {
 		ok := network.ReleaseCS{
 			ReqType:    network.OkType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
-			Value:      val,
 		}
+
 
 		// Encode message and send to recipient
 		network.Send(network.Encode(ok), k)
@@ -119,6 +130,7 @@ func recReceive(processId uint8, req network.RequestCS) {
 	timestamp = uint32(Max(int64(timestamp), int64(req.Timestamp)) + 1)
 
 	if currentDemand == false {
+
 		ok := network.ReleaseCS{
 			ReqType:    network.OkType,
 			ProcessNbr: processId,
@@ -132,12 +144,19 @@ func recReceive(processId uint8, req network.RequestCS) {
 		if criticalSection || demandTimestamp < req.Timestamp || ((demandTimestamp == req.Timestamp) && (processId < req.ProcessNbr)) {
 			pDiff[req.ProcessNbr] = true
 		} else {
+
+			val := network.SetVariable{
+				ReqType: network.ValType,
+				Value:   client.Shared,
+			}
+
 			ok := network.ReleaseCS{
 				ReqType:    network.OkType,
 				ProcessNbr: processId,
 				Timestamp:  timestamp,
 			}
 
+			network.Send(network.Encode(val), req.ProcessNbr)
 			// Encode message and send to recipient
 			network.Send(network.Encode(ok), req.ProcessNbr)
 			pWait[req.ProcessNbr] = true
@@ -205,14 +224,22 @@ func main() {
 
 		// Other site releases critical section via Network
 		case receivedMsg := <- message:
-		    if receivedMsg[0] == byte(network.ReqType) {
-		        req := network.DecodeRequest(receivedMsg)
-                go recReceive(processId, req)
-            } else if receivedMsg[0] == byte(network.OkType) {
-                ok := network.DecodeRelease(receivedMsg)
-                go okReceive(ok)
-            }
-            // TODO set value message
+			switch receivedMsg[0] {
+			case byte(network.ReqType):
+				fmt.Println("ReqType")
+				req := network.DecodeRequest(receivedMsg)
+				go recReceive(processId, req)
+
+			case byte(network.OkType):
+				fmt.Println("OkType")
+				ok := network.DecodeRelease(receivedMsg)
+				go okReceive(ok)
+
+			case byte(network.ValType):
+				fmt.Println("ValType")
+				value := network.DecodeSetVariable(receivedMsg)
+				client.Shared = value.Value
+			}
 
         case <-quit:
             return

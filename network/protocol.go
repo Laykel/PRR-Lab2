@@ -18,6 +18,7 @@ import (
 const (
 	ReqType = 0
 	OkType  = 1
+	ValType = 2
 )
 
 // Networking values
@@ -41,7 +42,6 @@ type ReleaseCS struct {
 	ReqType    uint8
 	ProcessNbr uint8
 	Timestamp  uint32
-	Value      int32 // TODO remove
 }
 
 // Message to update the shared variable
@@ -76,6 +76,18 @@ func DecodeRequest(buffer []byte) RequestCS {
 // Decode bytes from ReleaseCS back to struct
 func DecodeRelease(buffer []byte) ReleaseCS {
 	message := ReleaseCS{}
+	err := binary.Read(bytes.NewReader(buffer), binary.BigEndian, &message)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return message
+}
+
+
+// Decode bytes from SetVariable back to struct
+func DecodeSetVariable(buffer []byte) SetVariable {
+	message := SetVariable{}
 	err := binary.Read(bytes.NewReader(buffer), binary.BigEndian, &message)
 	if err != nil {
 		log.Fatal(err)

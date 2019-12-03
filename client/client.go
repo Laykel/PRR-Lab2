@@ -5,7 +5,7 @@ Authors: Jael Dubey, Luc Wachter
 Go version: 1.13.4 (linux/amd64)
 
 Provides a simple console user interface to access and modify a variable
-shared between all processes.
+Shared between all processes.
 */
 package client
 
@@ -17,6 +17,9 @@ import (
 	"strings"
 )
 
+// Shared variable across processes
+var Shared int32
+
 // Display a prompt for the user with instructions
 func prompt() {
 	fmt.Println("Commands: [r to read variable], [w <integer> to write to variable], [q to quit].")
@@ -26,8 +29,6 @@ func prompt() {
 // TODO errors checking
 // Ask user for their choice and either prints value or ask for CS and modify value
 func PromptClient(demand chan bool, wait chan bool, end chan int32, quit chan bool) {
-	// Shared variable across processes
-	var shared int32
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -42,13 +43,13 @@ func PromptClient(demand chan bool, wait chan bool, end chan int32, quit chan bo
 		// The user wants to read the variable
 		case "r":
 			// Just print the variable to stdout
-			fmt.Println(shared)
+			fmt.Println(Shared)
 
 		// The user wants to write to the variable
 		case "w":
 			// TODO check value
 			newValue, _ := strconv.ParseInt(tokens[1], 10, 32)
-			fmt.Println(shared)
+			fmt.Println(Shared)
 
 			// Call the Carvalho - Roucairol algorithm to acquire critical section
 			demand <- true
@@ -57,13 +58,13 @@ func PromptClient(demand chan bool, wait chan bool, end chan int32, quit chan bo
 			// START of critical section
 
 			// Modify the variable
-			shared = int32(newValue)
+			Shared = int32(newValue)
 
 			// END of critical section
 			// Then liberate the critical section
-			end <- shared
+			end <- Shared
 
-			fmt.Println(shared)
+			fmt.Println(Shared)
 
 		// The user wants to quit the program
 		case "q":
