@@ -16,8 +16,8 @@ package main
 
 import (
     "container/list"
-    "github.com/Laykel/PRR-Lab2/client"
-    "github.com/Laykel/PRR-Lab2/network"
+    "../client"
+    "../network"
     "os"
     "strconv"
 )
@@ -26,6 +26,10 @@ import (
 // List processes from which we need approval
 var pWait list.List
 var pDiff list.List
+
+var timestamp uint32
+var demandTimestamp uint16
+var currentDemand bool
 
 type listElem struct {
 	ProcessNbr uint8
@@ -41,6 +45,48 @@ func demandWait(ch chan bool) {
 	ch <- true
 }
 
+func makeDemand(idArg int, wait chan bool) {
+	timestamp++
+	currentDemand = true
+	demandTimestamp = uint16(timestamp)
+
+	// For every process in pWait
+	for e := pWait.Front(); e != nil; e = e.Next() {
+		request := network.RequestCS{
+			ReqType:    network.ReqType,
+			ProcessNbr: uint8(idArg),
+			Timestamp:  timestamp,
+		}
+
+		// Encode message and send to recipient
+		network.Send(network.Encode(request), e.Value.(listElem).ProcessNbr)
+	}
+
+	demandWait(wait)
+}
+
+func endDemand(idArg int, val int32) {
+	timestamp++
+	criticalSection = false
+	currentDemand = false
+
+	// For every process in pDiff
+	for e := pDiff.Front(); e != nil; e = e.Next() {
+		ok := network.ReleaseCS{
+			ReqType:    network.OkType,
+			ProcessNbr: uint8(idArg),
+			Timestamp:  timestamp,
+			Value:      val,
+		}
+
+		// Encode message and send to recipient
+		network.Send(network.Encode(ok), e.Value.(listElem).ProcessNbr)
+	}
+
+	pWait = pDiff
+	pDiff.Init()
+}
+
 // Main entrypoint for the mutual exclusion program
 func main() {
 	// Create channels to communicate with the Client Process
@@ -52,10 +98,6 @@ func main() {
 	// Create channels to communicate with the Network Process
 	req := make(chan network.RequestCS)
 	ok := make(chan network.ReleaseCS)
-
-	var timestamp uint32
-	//var demandTimestamp uint16
-	//var currentDemand bool
 
     // Launch Server Process
     go network.Server(req, ok)
@@ -78,45 +120,11 @@ func main() {
 		select {
 		// Client asks for critical section
 		case <-demand:
-			timestamp++
-			//		currentDemand = true
-			//		demandTimestamp = timestamp
-
-            // For every process in pWait
-			for e := pWait.Front(); e != nil; e = e.Next() {
-				request := network.RequestCS{
-					ReqType:    network.ReqType,
-					ProcessNbr: uint8(idArg),
-					Timestamp:  timestamp,
-				}
-
-				// Encode message and send to recipient
-				network.Send(network.Encode(request), e.Value.(listElem).ProcessNbr)
-			}
-
-			go demandWait(wait)
+			go makeDemand(idArg, wait)
 
         // Client releases critical section
 		case val := <-end:
-			timestamp++
-			criticalSection = false
-			//		currentDemand = false
-
-			// For every process in pDiff
-			for e := pDiff.Front(); e != nil; e = e.Next() {
-				ok := network.ReleaseCS{
-					ReqType:    network.OkType,
-					ProcessNbr: uint8(idArg),
-					Timestamp:  timestamp,
-					Value:      val,
-				}
-
-                // Encode message and send to recipient
-				network.Send(network.Encode(ok), e.Value.(listElem).ProcessNbr)
-			}
-
-			pWait = pDiff
-			pDiff.Init()
+			go endDemand(idArg, val)
 
         case <-quit:
             return
