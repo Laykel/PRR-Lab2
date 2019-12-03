@@ -12,7 +12,6 @@ package network
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -47,8 +46,6 @@ func handleConnection(conn net.Conn, req chan []byte) {
 	input.Scan()
 
 	message := input.Bytes()
-
-	fmt.Println(conn.RemoteAddr().String())
 
 	// Send byte array to mutex
 	req <- message
