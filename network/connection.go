@@ -18,17 +18,11 @@ import (
 	"strconv"
 )
 
-var (
-	entering = make(chan chan<- string) // Channel of channels
-	leaving  = make(chan chan<- string)
-	messages = make(chan string)
-)
-
 // Main TCP server entrypoint
-func Server(req chan RequestCS, ok chan ReleaseCS, processNbr int) {
-    // Listen on the current process' port
-    recipientPort := strconv.Itoa(int(Params.InitialPort + uint16(processNbr)))
-	listener, err := net.Listen("tcp", "127.0.0.1:" + recipientPort)
+func Listen(processNbr uint8, req chan []byte) {
+	// Listen on the current process' port
+	recipientPort := strconv.Itoa(int(Params.InitialPort + uint16(processNbr)))
+	listener, err := net.Listen("tcp", "127.0.0.1:"+recipientPort)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,48 +34,42 @@ func Server(req chan RequestCS, ok chan ReleaseCS, processNbr int) {
 			continue
 		}
 		// Manage this connection without blocking so that we don't miss connections
-		go handleConn(conn, req)
+		go handleConnection(conn, req)
 	}
 }
 
 // Manage a specific TCP connection
-func handleConn(conn net.Conn, req chan RequestCS) {
-    defer conn.Close()
+func handleConnection(conn net.Conn, req chan []byte) {
+	defer conn.Close()
 
-	ch := make(chan string)
-	go func() {
-		for msg := range ch {
-			fmt.Println(msg)
-		}
-	}()
-
-	who := conn.RemoteAddr().String()
-	ch <- "You are " + who           // clientwriter <- handleConn
 	fmt.Println(conn.RemoteAddr().String())
-	req <- RequestCS{1, 23, 2}
+	fmt.Println("lol")
 
-	input := bufio.NewScanner(conn)
-	for input.Scan() { // handleConn <- netcat client
-		messages <- who + ": " + input.Text() // broadcaster <- handleConn
+	// Read from conn
+	bufferBytes, err := bufio.NewReader(conn).ReadBytes('\n')
+	if err != nil {
+		log.Println("client left..")
+
+		return
 	}
 
-	leaving <- ch
-	messages <- who + " has left" // broadcaster <- handleConn
+	// Send byte array to mutex
+	req <- bufferBytes
 }
 
 // Send bytes to recipient (port number calculated from initial port)
 func Send(message []byte, recipient uint8) {
-    // Connect to recipient's server
-    recipientPort := strconv.Itoa(int(Params.InitialPort + uint16(recipient)))
-    conn, err := net.Dial("tcp", "127.0.0.1:" + recipientPort)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer conn.Close()
+	// Connect to recipient's server
+	recipientPort := strconv.Itoa(int(Params.InitialPort + uint16(recipient)))
+	conn, err := net.Dial("tcp", "127.0.0.1:"+recipientPort)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
 
-    // Send encoded message
-    _, err = fmt.Fprintln(conn, message)
-    if err != nil {
-        log.Fatal(err)
-    }
+	// Send encoded message
+	_, err = fmt.Fprintln(conn, message)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

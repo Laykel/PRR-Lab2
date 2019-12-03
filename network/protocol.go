@@ -41,7 +41,13 @@ type ReleaseCS struct {
 	ReqType    uint8
 	ProcessNbr uint8
 	Timestamp  uint32
-	Value      int32
+	Value      int32 // TODO remove
+}
+
+// Message to update the shared variable
+type SetVariable struct {
+	ReqType uint8
+	Value   int32
 }
 
 // Encode given struct as big endian bytes and return bytes buffer
