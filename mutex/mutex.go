@@ -99,21 +99,21 @@ func main() {
 	req := make(chan network.RequestCS)
 	ok := make(chan network.ReleaseCS)
 
-    // Launch Server Process
-    go network.Server(req, ok)
-
-	// Launch Client Process
-	go client.PromptClient(demand, wait, end, quit)
-
     // Handle program arguments
     // TODO Possible to move in client??? Or in main.go
-	var idArg int
+    var idArg int
 
-	if len(os.Args) == 2 {
+    if len(os.Args) == 2 {
         idArg, _ = strconv.Atoi(os.Args[1])
     } else {
         idArg = 0
     }
+
+    // Launch Server Process
+    go network.Server(req, ok, idArg)
+
+	// Launch Client Process
+	go client.PromptClient(demand, wait, end, quit)
 
 	// Infinite loop
 	for {

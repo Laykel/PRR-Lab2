@@ -25,68 +25,40 @@ var (
 )
 
 // Main TCP server entrypoint
-func Server(req chan RequestCS, ok chan ReleaseCS) {
-	listener, err := net.Listen("tcp", "localhost:"+string(Params.InitialPort))
+func Server(req chan RequestCS, ok chan ReleaseCS, processNbr int) {
+    // Listen on the current process' port
+    recipientPort := strconv.Itoa(int(Params.InitialPort + uint16(processNbr)))
+	listener, err := net.Listen("tcp", "127.0.0.1:" + recipientPort)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	go broadcaster(req)
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			log.Print(err)
 			continue
 		}
-		go handleConn(conn)
+		// Manage this connection without blocking so that we don't miss connections
+		go handleConn(conn, req)
 	}
 }
 
-func broadcaster(req chan RequestCS) {
-	clients := make(map[chan<- string]bool) // all connected clients
-	for {
-		select {
-		case msg := <-messages: // broadcaster <- handleConn
-			// Broadcast incoming message to all clients' outgoing message channels.
-			for cli := range clients {
-				cli <- msg // clientwriter (handleConn) <- broadcaster
-			}
+// Manage a specific TCP connection
+func handleConn(conn net.Conn, req chan RequestCS) {
+    defer conn.Close()
 
-		case cli := <-entering:
-			clients[cli] = true
-
-		case cli := <-leaving:
-			delete(clients, cli)
-			close(cli)
-
-		/*case request := <-req:
-			reqType := request.ReqType
-			reqTimestamp := request.Timestamp
-			reqProcessNb := request.ProcessNbr
-
-			if request.ReqType == REQ_TYPE {
-				for cli := range clients {
-
-				}
-			}*/
-
-
-		}
-	}
-}
-
-func handleConn(conn net.Conn) {
-	ch := make(chan string) // channel 'client' mais utilisé ici dans les 2 sens
-	go func() {             // clientwriter
-		for msg := range ch { // clientwriter <- broadcaster, handleConn
-			fmt.Fprintln(conn, msg) // netcat Client <- clientwriter
+	ch := make(chan string)
+	go func() {
+		for msg := range ch {
+			fmt.Println(msg)
 		}
 	}()
 
 	who := conn.RemoteAddr().String()
 	ch <- "You are " + who           // clientwriter <- handleConn
-	messages <- who + " has arrived" // broadcaster <- handleConn
-	entering <- ch
+	fmt.Println(conn.RemoteAddr().String())
+	req <- RequestCS{1, 23, 2}
 
 	input := bufio.NewScanner(conn)
 	for input.Scan() { // handleConn <- netcat client
@@ -95,21 +67,21 @@ func handleConn(conn net.Conn) {
 
 	leaving <- ch
 	messages <- who + " has left" // broadcaster <- handleConn
-	conn.Close()
 }
 
 // Send bytes to recipient (port number calculated from initial port)
 func Send(message []byte, recipient uint8) {
-    conn, err := net.Dial("tcp", "localhost:" + strconv.Itoa(int(Params.InitialPort + uint16(recipient))))
+    // Connect to recipient's server
+    recipientPort := strconv.Itoa(int(Params.InitialPort + uint16(recipient)))
+    conn, err := net.Dial("tcp", "127.0.0.1:" + recipientPort)
     if err != nil {
         log.Fatal(err)
     }
+    defer conn.Close()
 
     // Send encoded message
-    _, err = fmt.Fprint(conn, message)
+    _, err = fmt.Fprintln(conn, message)
     if err != nil {
         log.Fatal(err)
     }
-
-    conn.Close()
 }
