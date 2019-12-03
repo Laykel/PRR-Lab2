@@ -15,9 +15,9 @@ from the client and forwarding them to the network manager.
 package main
 
 import (
-    "encoding/json"
-    "fmt"
-    "github.com/Laykel/PRR-Lab2/client"
+	"encoding/json"
+	"fmt"
+	"github.com/Laykel/PRR-Lab2/client"
 	"github.com/Laykel/PRR-Lab2/network"
 	"os"
 	"strconv"
@@ -37,19 +37,19 @@ var currentDemand bool
 var criticalSection bool
 
 func LoadConfiguration(file string) network.Parameters {
-    var params network.Parameters
+	var params network.Parameters
 
-    // Read parameters file
-    configFile, err := os.Open(file)
-    if err != nil {
-        fmt.Println(err.Error())
-    }
-    defer configFile.Close()
+	// Read parameters file
+	configFile, err := os.Open(file)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer configFile.Close()
 
-    jsonParser := json.NewDecoder(configFile)
-    jsonParser.Decode(&params)
+	jsonParser := json.NewDecoder(configFile)
+	jsonParser.Decode(&params)
 
-    return params
+	return params
 }
 
 // Max returns the larger of x or y.
@@ -98,7 +98,6 @@ func endDemand(processId uint8, val int32) {
 			ReqType:    network.OkType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
-			Value:      val,
 		}
 
 		// Encode message and send to recipient
@@ -176,15 +175,15 @@ func main() {
 		processId = 0
 	}
 
-    // Read parameters from json file
-    network.Params = LoadConfiguration(parametersFile)
+	// Read parameters from json file
+	network.Params = LoadConfiguration(parametersFile)
 
 	// Populate pWait
 	for i := uint8(0); i < network.Params.NbProcesses; i++ {
-	    if i != processId {
-	        pWait[i] = true
-        }
-    }
+		if i != processId {
+			pWait[i] = true
+		}
+	}
 
 	// Launch Server Process
 	go network.Listen(processId, message)
@@ -199,23 +198,28 @@ func main() {
 		case <-demand:
 			go makeDemand(processId, wait)
 
-        // Client releases critical section
+			// Client releases critical section
 		case val := <-end:
 			go endDemand(processId, val)
 
 		// Other site releases critical section via Network
-		case receivedMsg := <- message:
-		    if receivedMsg[0] == byte(network.ReqType) {
-		        req := network.DecodeRequest(receivedMsg)
-                go recReceive(processId, req)
-            } else if receivedMsg[0] == byte(network.OkType) {
-                ok := network.DecodeRelease(receivedMsg)
-                go okReceive(ok)
-            }
-            // TODO set value message
+		case receivedMsg := <-message:
+			// Handle request type
+			switch receivedMsg[0] {
+			case byte(network.ReqType):
+				req := network.DecodeRequest(receivedMsg)
+				go recReceive(processId, req)
 
-        case <-quit:
-            return
+			case byte(network.OkType):
+				ok := network.DecodeRelease(receivedMsg)
+				go okReceive(ok)
+
+			case byte(network.ValType):
+
+			}
+
+		case <-quit:
+			return
 		}
 	}
 }

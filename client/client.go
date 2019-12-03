@@ -17,6 +17,9 @@ import (
 	"strings"
 )
 
+// Shared variable across processes
+var shared int32
+
 // Display a prompt for the user with instructions
 func prompt() {
 	fmt.Println("Commands: [r to read variable], [w <integer> to write to variable], [q to quit].")
@@ -26,8 +29,6 @@ func prompt() {
 // TODO errors checking
 // Ask user for their choice and either prints value or ask for CS and modify value
 func PromptClient(demand chan bool, wait chan bool, end chan int32, quit chan bool) {
-	// Shared variable across processes
-	var shared int32
 
 	reader := bufio.NewReader(os.Stdin)
 

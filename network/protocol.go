@@ -18,6 +18,7 @@ import (
 const (
 	ReqType = 0
 	OkType  = 1
+	ValType = 2
 )
 
 // Networking values
@@ -41,7 +42,6 @@ type ReleaseCS struct {
 	ReqType    uint8
 	ProcessNbr uint8
 	Timestamp  uint32
-	Value      int32 // TODO remove
 }
 
 // Message to update the shared variable
