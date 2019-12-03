@@ -19,8 +19,8 @@ func TestEncode(t *testing.T) {
 		},
 		{
 			"Test ReleaseCS message encoding",
-			ReleaseCS{OkType, 56, 3, 45780},
-			[]byte{1, 56, 0, 0, 0, 3, 0, 0, 178, 212},
+			ReleaseCS{OkType, 56, 3},
+			[]byte{1, 56, 0, 0, 0, 3},
 		},
 	}
 
@@ -73,8 +73,8 @@ func TestDecodeRelease(t *testing.T) {
 	}{
 		{
 			"Test decoding release message",
-			[]byte{1, 34, 0, 0, 0, 12, 0, 0, 0, 89},
-			ReleaseCS{OkType, 34, 12, 89},
+			[]byte{1, 34, 0, 0, 0, 12},
+			ReleaseCS{OkType, 34, 12},
 		},
 	}
 
