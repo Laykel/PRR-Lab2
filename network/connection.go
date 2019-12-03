@@ -12,7 +12,6 @@ package network
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -42,13 +41,11 @@ func Listen(processNbr uint8, req chan []byte) {
 func handleConnection(conn net.Conn, req chan []byte) {
 	defer conn.Close()
 
-    // Read from conn
+	// Read from conn
 	input := bufio.NewScanner(conn)
 	input.Scan()
 
 	message := input.Bytes()
-
-	fmt.Println(conn.RemoteAddr().String())
 
 	// Send byte array to mutex
 	req <- message
@@ -65,7 +62,7 @@ func Send(message []byte, recipient uint8) {
 	defer conn.Close()
 
 	// Send encoded message
-    _, err = conn.Write(message)
+	_, err = conn.Write(message)
 	if err != nil {
 		log.Fatal(err)
 	}

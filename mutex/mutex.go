@@ -4,13 +4,7 @@ File: mutex/mutex.go
 Authors: Jael Dubey, Luc Wachter
 Go version: 1.13.4 (linux/amd64)
 
-Main entrypoint for the mutual exclusion program.
-
-The access to the shared variable is guaranteed to be mutually exclusive
-thanks to the Carvalho-Roucairol algorithm.
-
-This file contains the central part of the algorithm, receiving requests
-from the client and forwarding them to the network manager.
+This file contains the implementation of the Carvalho-Roucairol algorithm.
 */
 package main
 
@@ -23,13 +17,11 @@ import (
 	"strconv"
 )
 
-const parametersFile = "mutex/parameters.json"
-
-// TODO try and reorganize variables and functions (file for main and file for mutex?)
 // List processes from which we need approval
 var pWait = make(map[uint8]bool)
 var pDiff = make(map[uint8]bool)
 
+// Necessary algorithm variables
 var timestamp uint32
 var demandTimestamp uint32
 var currentDemand bool
@@ -111,7 +103,6 @@ func endDemand(processId uint8, val int32) {
 			Timestamp:  timestamp,
 		}
 
-
 		// Encode message and send to recipient
 		network.Send(network.Encode(ok), k)
 	}
@@ -126,11 +117,10 @@ func okReceive(ok network.ReleaseCS) {
 	delete(pWait, ok.ProcessNbr)
 }
 
-func recReceive(processId uint8, req network.RequestCS) {
+func reqReceive(processId uint8, req network.RequestCS) {
 	timestamp = uint32(Max(int64(timestamp), int64(req.Timestamp)) + 1)
 
 	if currentDemand == false {
-
 		ok := network.ReleaseCS{
 			ReqType:    network.OkType,
 			ProcessNbr: processId,

@@ -5,7 +5,7 @@ Authors: Jael Dubey, Luc Wachter
 Go version: 1.13.4 (linux/amd64)
 
 Provides a simple console user interface to access and modify a variable
-Shared between all processes.
+shared between all processes.
 */
 package client
 
