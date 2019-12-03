@@ -98,35 +98,18 @@ func handleConn(conn net.Conn) {
 	conn.Close()
 }
 
-func SendReq(msg RequestCS, recipient uint8) {
+// Send bytes to recipient (port number calculated from initial port)
+func Send(message []byte, recipient uint8) {
+    conn, err := net.Dial("tcp", "localhost:" + strconv.Itoa(int(Params.InitialPort + uint16(recipient))))
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	conn, err := net.Dial("tcp", "localhost:" + strconv.Itoa(int(Params.InitialPort + uint16(recipient))))
-	if err != nil {
-		log.Fatal(err)
-	}
+    // Send encoded message
+    _, err = fmt.Fprint(conn, message)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	// Send message
-	_, err = fmt.Fprint(conn, Encode(msg))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	conn.Close()
-}
-
-
-func SendOk(msg ReleaseCS, recipient uint8) {
-
-	conn, err := net.Dial("tcp", "localhost:" + strconv.Itoa(int(Params.InitialPort + uint16(recipient))))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Send message
-	_, err = fmt.Fprint(conn, Encode(msg))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	conn.Close()
+    conn.Close()
 }

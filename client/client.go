@@ -25,7 +25,7 @@ func prompt() {
 
 // TODO errors checking
 // Ask user for their choice and either prints value or ask for CS and modify value
-func PromptClient(demand chan bool, wait chan bool, end chan int32) {
+func PromptClient(demand chan bool, wait chan bool, end chan int32, quit chan bool) {
 	// Shared variable across processes
 	var shared int32
 
@@ -41,7 +41,7 @@ func PromptClient(demand chan bool, wait chan bool, end chan int32) {
 		switch tokens[0] {
         // The user wants to read the variable
         case "r":
-            // Just prints the variable to stdout
+            // Just print the variable to stdout
             fmt.Println(shared)
 
         // The user wants to write to the variable
@@ -67,7 +67,7 @@ func PromptClient(demand chan bool, wait chan bool, end chan int32) {
 
         // The user wants to quit the program
         case "q":
-            // TODO Quit the program (channel to mutex)
+            quit<- true
 
         // Unknown command
         default:
