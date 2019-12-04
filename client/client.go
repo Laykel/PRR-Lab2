@@ -26,7 +26,6 @@ func prompt() {
 	fmt.Print("> ")
 }
 
-// TODO errors checking
 // Ask user for their choice and either prints value or ask for CS and modify value
 func PromptClient(demand chan bool, wait chan bool, end chan int32, quit chan bool) {
 
@@ -47,7 +46,6 @@ func PromptClient(demand chan bool, wait chan bool, end chan int32, quit chan bo
 
 		// The user wants to write to the variable
 		case "w":
-			// TODO check value
 			newValue, _ := strconv.ParseInt(tokens[1], 10, 32)
 			fmt.Println(Shared)
 

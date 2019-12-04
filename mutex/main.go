@@ -34,7 +34,9 @@ func loadParameters(file string) network.Parameters {
 	configFile, err := os.Open(file)
 	if err != nil {
 		fmt.Println(err.Error())
-	}
+	} else if configFile == nil {
+	    fmt.Println("Could not open parameters file.")
+    }
 	defer configFile.Close()
 
 	jsonParser := json.NewDecoder(configFile)
@@ -80,32 +82,33 @@ func main() {
 	// Launch Client Process
 	go client.PromptClient(demand, wait, end, quit)
 
-	// Infinite loop
 	for {
 		select {
 		// Client asks for critical section
 		case <-demand:
 			go makeDemand(processId, wait)
 
-			// Client releases critical section
+        // Client releases critical section
 		case val := <-end:
-		    // TODO send setValue
 			go endDemand(processId, val)
 
 		// Other site releases critical section via Network
 		case receivedMsg := <-message:
-			// Handle request type
 			switch receivedMsg[0] {
 			case byte(network.ReqType):
+				fmt.Println("ReqType")
 				req := network.DecodeRequest(receivedMsg)
 				go reqReceive(processId, req)
 
 			case byte(network.OkType):
+				fmt.Println("OkType")
 				ok := network.DecodeRelease(receivedMsg)
 				go okReceive(ok)
 
 			case byte(network.ValType):
-                // TODO
+				fmt.Println("ValType")
+				value := network.DecodeSetVariable(receivedMsg)
+				client.Shared = value.Value
 			}
 
 		case <-quit:
