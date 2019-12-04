@@ -30,15 +30,8 @@ type Parameters struct {
 
 var Params Parameters
 
-// Message to request the critical section
-type RequestCS struct {
-	ReqType    uint8
-	ProcessNbr uint8
-	Timestamp  uint32
-}
-
-// Message to release the critical section
-type ReleaseCS struct {
+// Message to request and release the critical section
+type MessageCS struct {
 	ReqType    uint8
 	ProcessNbr uint8
 	Timestamp  uint32
@@ -62,9 +55,9 @@ func Encode(message interface{}) []byte {
 	return buffer.Bytes()
 }
 
-// Decode bytes from RequestCS back to struct
-func DecodeRequest(buffer []byte) RequestCS {
-	message := RequestCS{}
+// Decode bytes from MessageCS back to struct
+func DecodeRequest(buffer []byte) MessageCS {
+	message := MessageCS{}
 	err := binary.Read(bytes.NewReader(buffer), binary.BigEndian, &message)
 	if err != nil {
 		log.Fatal(err)
@@ -73,9 +66,9 @@ func DecodeRequest(buffer []byte) RequestCS {
 	return message
 }
 
-// Decode bytes from ReleaseCS back to struct
-func DecodeRelease(buffer []byte) ReleaseCS {
-	message := ReleaseCS{}
+// Decode bytes from MessageCS back to struct
+func DecodeRelease(buffer []byte) MessageCS {
+	message := MessageCS{}
 	err := binary.Read(bytes.NewReader(buffer), binary.BigEndian, &message)
 	if err != nil {
 		log.Fatal(err)

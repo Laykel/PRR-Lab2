@@ -13,13 +13,13 @@ func TestEncode(t *testing.T) {
 		want    []byte
 	}{
 		{
-			"Test RequestCS message encoding",
-			RequestCS{RequestMessageType, 28, 1},
+			"Test MessageCS message encoding",
+            MessageCS{RequestMessageType, 28, 1},
 			[]byte{0, 28, 0, 0, 0, 1},
 		},
 		{
-			"Test ReleaseCS message encoding",
-			ReleaseCS{ReleaseMessageType, 56, 3},
+			"Test MessageCS message encoding",
+            MessageCS{ReleaseMessageType, 56, 3},
 			[]byte{1, 56, 0, 0, 0, 3},
 		},
 		{
@@ -47,12 +47,12 @@ func TestDecodeRequest(t *testing.T) {
 	tests := []struct {
 		name   string
 		buffer []byte
-		want   RequestCS
+		want   MessageCS
 	}{
 		{
 			"Test decoding request message",
 			[]byte{0, 28, 0, 0, 0, 12},
-			RequestCS{RequestMessageType, 28, 12},
+            MessageCS{RequestMessageType, 28, 12},
 		},
 	}
 
@@ -74,12 +74,12 @@ func TestDecodeRelease(t *testing.T) {
 	tests := []struct {
 		name   string
 		buffer []byte
-		want   ReleaseCS
+		want   MessageCS
 	}{
 		{
 			"Test decoding release message",
 			[]byte{1, 34, 0, 0, 0, 12},
-			ReleaseCS{ReleaseMessageType, 34, 12},
+            MessageCS{ReleaseMessageType, 34, 12},
 		},
 	}
 

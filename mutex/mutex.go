@@ -57,7 +57,7 @@ func MakeDemand(processId uint8, wait chan bool) {
 
 	// For every process in pWait
 	for k := range pWait {
-		request := network.RequestCS{
+		request := network.MessageCS{
 			ReqType:    network.RequestMessageType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
@@ -93,7 +93,7 @@ func EndDemand(processId uint8, val int32) {
 	}
 
 	for k := range pDiff {
-		ok := network.ReleaseCS{
+		ok := network.MessageCS{
 			ReqType:    network.ReleaseMessageType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
@@ -107,17 +107,17 @@ func EndDemand(processId uint8, val int32) {
 	pDiff = make(map[uint8]bool)
 }
 
-func OkReceive(ok network.ReleaseCS) {
+func OkReceive(ok network.MessageCS) {
 	timestamp = uint32(Max(int64(timestamp), int64(ok.Timestamp)) + 1)
 
 	delete(pWait, ok.ProcessNbr)
 }
 
-func ReqReceive(processId uint8, req network.RequestCS) {
+func ReqReceive(processId uint8, req network.MessageCS) {
 	timestamp = uint32(Max(int64(timestamp), int64(req.Timestamp)) + 1)
 
 	if currentDemand == false {
-		ok := network.ReleaseCS{
+		ok := network.MessageCS{
 			ReqType:    network.ReleaseMessageType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
@@ -135,7 +135,7 @@ func ReqReceive(processId uint8, req network.RequestCS) {
 				Value:   client.Shared,
 			}
 
-			ok := network.ReleaseCS{
+			ok := network.MessageCS{
 				ReqType:    network.ReleaseMessageType,
 				ProcessNbr: processId,
 				Timestamp:  timestamp,
@@ -146,7 +146,7 @@ func ReqReceive(processId uint8, req network.RequestCS) {
 			send(network.Encode(ok), req.ProcessNbr)
 			pWait[req.ProcessNbr] = true
 
-			request := network.RequestCS{
+			request := network.MessageCS{
 				ReqType:    network.RequestMessageType,
 				ProcessNbr: processId,
 				Timestamp:  timestamp,
