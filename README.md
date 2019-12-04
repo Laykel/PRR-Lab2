@@ -1,104 +1,64 @@
 # PRR - Laboratoire 2 : Exclusion mutuelle
 
-**Changer les chemins pour des chemins relatifs lors du rendu.**
+_Algorithme de Carvalho-Roucairol_
 
-## Administratif
+_Auteurs : Jael Dubey et Luc Wachter_
 
-- Temps à disposition : 10 périodes
-- Travail à réaliser par groupe de 2 étudiants.
-- La présence aux labos est obligatoire. En cas d’absences répétées, l’étudiant sera pénalisé.
-- En cas de copie manifeste entre les rendus de deux labos, tous les étudiants des deux groupes
-se verront affecter la note de 1.
-- Distribué le mercredi 6 novembre 2019 à 14h55.
-- A rendre le mercredi 27 novembre 2019 à 16h30. Une démonstration pourra être demandée.
-- Forme du rendu : impression des fichiers sources à remettre en séance, archive du projet par email à
-l’assistant et à l’enseignant. Readme indiquant comment l’utiliser et précisant ce qui a été réalisé, ce
-qui fonctionne et ce qui reste à faire.
+## Description
 
-## Objectifs
+Ce laboratoire a pour but l'implémentation de l'algorithme de Carvalho-Roucairol afin de mettre en place
+l'exclusion mutuelle sur une simple variable partagée.
 
-- Comprendre le fonctionnement d'un algorithme d'exclusion mutuelle réparti.
-- Utiliser l'algorithme de Carvalho et Roucairol pour maintenir la cohérence d'une variable
-répartie sur un ensemble de processus.
-- Réaliser des communications TCP en langage Go.
+Le logiciel, une fois lancé en autant de processus que précisé dans le fichier de configuration, s'assure
+que tous les processus ont été lancés, puis propose une invite de commande à l'utilisateur. Celui-ci peut alors
+utiliser les commandes décrites pour lire la valeur partagée ou la modifier. S'il la modifie, l'algorithme d'acquisition
+de section critique est exécuté, puis la nouvelle valeur est distribuée aux autres processus, avant de relâcher
+la section critique.
 
-## Critères d'évaluation
+## Utilisation
 
-La note du labo sera constituée de 2 notes au demi-point prêt, chacune étant comprise entre 0 et 2,5
-points : une pour le bon fonctionnement du programme et une pour la qualité du rendu. La note du
-labo (sur 6 points) sera obtenue par : 1 + la somme de ces 2 notes.
+### Ajustement des paramètres dans le fichier
 
-Le bon fonctionnement du programme est obtenu s’il couvre toutes les fonctionnalités de l’énoncé du
-labo, s’exécute de façon performante et ne présente pas de bugs.
+1. Ouvrir le fichier `main/parameters.json`.
+2. Adapter les valeurs pour le port initial, l'adresse IP et le nombre de processus.
 
-La qualité du rendu sera évaluée en tenant compte des points suivants :
+### Lancer les processus
 
-- Facilité et rapidité de la mise en œuvre du programme (activation, aide, paramétrage), en
-particulier si on utilise un seul PC pour le tester (options par défaut bien choisies).
-- Facilité et rapidité de la vérification de son fonctionnement : traces éventuellement
-paramétrables, datées et signées, mais en tout cas claires et adéquates.
-- Possibilités de paramétrage pour simuler des conditions réseau réelles (uniquement les délais
-de transmission car le réseau est supposé sans pannes) dans les limites de l’énoncé.
-- Réalisation de tests automatisés avec simulation de processus ou d’une partie de l’application
-(mocking).
-- Conception du code source (structure et décomposition). Possibilité de réutilisation d’une
-partie du code avec un autre énoncé (autre couche de transport réseau, ...). Cependant, il ne
-doit pas faire plus que ce qui est demandé, ni être prévu pour des extensions hypothétiques.
-- Qualité, simplicité, concision et lisibilité du code source. Conformité au format de code source
-et aux bonnes pratiques préconisées pour le langage.
-- Documentation des entêtes de modules et de fonctions. Commentaires adéquats des
-instructions : un commentaire trivial ou inutile est aussi pénalisant que l’absence d’un
-commentaire nécessaire à la compréhension.
-- Lisibilité du code imprimé : pagination adéquate (fonction sur une seule page ou bien
-découpée), entêtes et fin de pages, titres des modules et fonctions apparents, police adéquate et
-indentation bien choisie (pas de retour ligne automatique).
+1. Se positionner dans le dossier `PRR-Lab2/` (à la racine des packages).
+2. Ouvrir autant de terminaux que précisé dans le fichier de paramètres.
+3. Lancer dans chaque terminal le programme, en précisant l'id du processus : `go run main/main.go 0`.
+4. `go run main/main.go 1`, etc.
 
-## Énoncé du problème
+---
 
-Partager une donnée parmi un ensemble de processus est un problème qui peut se résoudre par le biais
-d'un algorithme d'exclusion mutuelle. Dans ce laboratoire, nous allons utiliser l’algorithme de
-Carvalho et Roucairol, une optimisation de l’algorithme de Ricart et Agrawala, comme algorithme
-d’exclusion mutuelle.
+- Le programme attend alors que tous les processus soient lancés.
+- Il est alors possible d'effectuer les commandes proposées à l'utilisateur.
 
-Chaque processus détient une variable entière qui doit être cohérente. Les tâches applicatives peuvent
-faire 2 opérations sur cette variable : consulter sa valeur, et modifier sa valeur. La consultation revient
-à obtenir la valeur la plus récente. Par contre, une modification se passe en 3 étapes :
+## Implémentation
 
-1. obtenir l'exclusion mutuelle sur la variable ;
-2. modifier la valeur en section critique, par exemple l’incrémenter ;
-3. informer tous les autres processus de la nouvelle valeur ;
-4. libérer la section critique.
+Pour écrire le programme, nous nous sommes basés sur la structure proposée dans la slide 21 du ch. 3.3 du cours (ci-dessous).
 
-## Travail à faire
+![diagram](img/GraphiqueImplémentation.png)
 
-Chaque processus de l'environnement exécute une application qui intègre la partie applicative (gestion
-de la variable partagée et interface utilisateur) et la partie gestionnaire de l’exclusion mutuelle en
-mode réparti. Il sera possible :
+Nous avons donc séparé au mieux les couches "Client", "Mutex" et "Network".
 
-1. d’afficher la valeur de la variable partagée obtenue (opération de consultation);
-2. d’obtenir la permission de modifier la variable partagée, puis de réaliser cette modification par
-une saisie au clavier.
+### Packages et fichiers
 
-La première opération n'est jamais bloquante et pourra être effectuée par toutes les tâches applicatives
-qui ne sont, ni en attente d'une exclusion mutuelle, ni en cours de modifier la variable partagée. C'est
-uniquement la seconde opération qui nécessite l'obtention de l'exclusion mutuelle.
+- Le package `main` contient le point d'entrée principal du programme. Il lance le serveur TCP dans une go routine afin d'écouter les connections entrantes, puis lance le processus client dans une autre go routine (en leur passant à chacun les channels nécessaires à la communication inter-processus.)
+- Le package `client` contient la partie visible par l'utilisateur : l'interface dans le terminal. Il communique avec le package `main` pour gérer la section critique.
+- Le package `mutex` contient l'implémentation de l'algorithme de Carvalho et Roucairol. Ses fonctions sont appelées par le package `main` pour gérer la section critique.
+- Le package `network` contient les fichiers suivants.
+    - Le fichier `protocol.go` contient les types utilisés pour la communication réseau ainsi que des valeurs importantes et les fonctions d'encodage en bytes et de décodage.
+    - Le fichier `connection.go` contient le serveur de réception TCP et la fonction d'envoi de requêtes.
 
-Afin de vérifier le fonctionnement de votre implémentation, vous devez afficher la valeur de la
-variable partagée en section critique avant sa modification.
+### Simplifications
 
-Avant libération de la section critique, la nouvelle valeur de la variable sera transmise aux autres
-processus formant l'environnement.
+Afin de faire fonctionner le programme sur un seul hôte, il nous a fallu effectuer des simplifications au concept réparti.
 
-![Graphique d'implémentation](img/GraphiqueImplémentation.png)
+En effet, au lieu de stocker les adresses IP de tous les hôtes différents (par exemple dans le fichier `main/parameters.json`),
+nous stockons simplement l'adresse locale (localhost) ainsi qu'un port de départ, auquel on additionne l'id du processus.
 
-## Hypothèses
+### Problèmes connus
 
-1. Le nombre de processus partageant la donnée n'est pas connu, mais peut être introduit comme
-paramètre sur la ligne de commande. Une fois initialisé, le nombre de processus demeure constant.
-2. Ces processus et le réseau qui les interconnecte sont entièrement fiables.
-3. La communication entre les différents processus se réalisera uniquement par TCP.
-4. Il n'y a qu'une seule variable globale à partager sur l'ensemble des processus.
-5. Tous les messages échangés devront être le plus petit que possible.
-6. Vous devez attendre que l’ensemble des processus soient prêt avant d’accepter les demandes
-applicatives.
-
+- Nous avons remarqué trop tard que notre méthode pour lire les bytes encodés interprète les bytes `10` et `13` comme retour à la ligne, et donc EOF. Les processus qui reçoivent donc la nouvelle valeur, si celle-ci est 10 ou 12 crashent avec une erreur `unexpected EOF`.
+- Nous avons effectué des tests uniquement sur le package `network`, malheureusement.

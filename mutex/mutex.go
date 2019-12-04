@@ -11,6 +11,9 @@ package mutex
 import (
 	"../client"
 	"../network"
+	"encoding/json"
+	"fmt"
+	"os"
 	"strconv"
 )
 
@@ -24,6 +27,22 @@ var demandTimestamp uint32
 var currentDemand bool
 
 var criticalSection bool
+
+func LoadConfiguration(file string) network.Parameters {
+    var params network.Parameters
+
+    // Read parameters file
+    configFile, err := os.Open(file)
+    if err != nil {
+        fmt.Println(err.Error())
+    }
+    defer configFile.Close()
+
+    jsonParser := json.NewDecoder(configFile)
+    jsonParser.Decode(&params)
+
+    return params
+}
 
 // Max returns the larger of x or y.
 func Max(x, y int64) int64 {
