@@ -11,9 +11,9 @@ Source: https://go-talks.appspot.com/github.com/patricklac/prr-slides/ch2
 package network
 
 import (
-    "bufio"
-    "log"
-    "net"
+	"bufio"
+	"log"
+	"net"
 )
 
 // Main TCP server entrypoint
@@ -62,5 +62,17 @@ func Send(message []byte, address string) {
 	_, err = conn.Write(message)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func AreYouThere(address string) {
+	for {
+		// Connect to recipient's server
+		conn, err := net.Dial("tcp", address)
+
+		if err == nil {
+			conn.Close()
+			break
+		}
 	}
 }

@@ -13,6 +13,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -34,9 +35,16 @@ func PromptClient(demand chan bool, wait chan bool, end chan int32, quit chan bo
 	for {
 		// Ask the user what he wants to do
 		prompt()
+
 		input, _ := reader.ReadString('\n')
 
-		tokens := strings.Split(input[:len(input)-1], " ")
+		var tokens []string
+
+		if runtime.GOOS == "windows" {
+			tokens = strings.Split(input[:len(input)-2], " ")
+		} else {
+			tokens = strings.Split(input[:len(input)-1], " ")
+		}
 
 		switch tokens[0] {
 		// The user wants to read the variable

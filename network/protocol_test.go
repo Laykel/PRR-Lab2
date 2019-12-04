@@ -1,8 +1,8 @@
 package network
 
 import (
-    "reflect"
-    "testing"
+	"reflect"
+	"testing"
 )
 
 func TestEncode(t *testing.T) {
@@ -14,12 +14,12 @@ func TestEncode(t *testing.T) {
 	}{
 		{
 			"Test MessageCS message encoding",
-            MessageCS{RequestMessageType, 28, 1},
+			MessageCS{RequestMessageType, 28, 1},
 			[]byte{0, 28, 0, 0, 0, 1},
 		},
 		{
 			"Test MessageCS message encoding",
-            MessageCS{ReleaseMessageType, 56, 3},
+			MessageCS{ReleaseMessageType, 56, 3},
 			[]byte{1, 56, 0, 0, 0, 3},
 		},
 		{
@@ -52,13 +52,13 @@ func TestDecodeMessage(t *testing.T) {
 		{
 			"Test decoding request message",
 			[]byte{0, 28, 0, 0, 0, 12},
-            MessageCS{RequestMessageType, 28, 12},
+			MessageCS{RequestMessageType, 28, 12},
 		},
-        {
-            "Test decoding release message",
-            []byte{1, 34, 0, 0, 0, 12},
-            MessageCS{ReleaseMessageType, 34, 12},
-        },
+		{
+			"Test decoding release message",
+			[]byte{1, 34, 0, 0, 0, 12},
+			MessageCS{ReleaseMessageType, 34, 12},
+		},
 	}
 
 	// Run test cases

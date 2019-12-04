@@ -9,9 +9,9 @@ This file contains the implementation of the Carvalho-Roucairol algorithm.
 package mutex
 
 import (
-    "github.com/Laykel/PRR-Lab2/client"
-    "github.com/Laykel/PRR-Lab2/network"
-    "strconv"
+	"../client"
+	"../network"
+	"strconv"
 )
 
 // List processes from which we need approval
@@ -35,17 +35,17 @@ func Max(x, y int64) int64 {
 
 func PopulatePWait(processId uint8) {
 	// Populate pWait
-	for i := processId+1; i < network.Params.NbProcesses; i++ {
-			pWait[i] = true
+	for i := processId + 1; i < network.Params.NbProcesses; i++ {
+		pWait[i] = true
 	}
 }
 
 // Calculate proper address and forward to network
 func send(message []byte, recipientId uint8) {
-    recipientPort := strconv.Itoa(int(network.Params.InitialPort + uint16(recipientId)))
-    recipientAddress := network.Params.ProcessAddress+":"+recipientPort
+	recipientPort := strconv.Itoa(int(network.Params.InitialPort + uint16(recipientId)))
+	recipientAddress := network.Params.ProcessAddress + ":" + recipientPort
 
-    network.Send(message, recipientAddress)
+	network.Send(message, recipientAddress)
 }
 
 func MakeDemand(processId uint8, wait chan bool) {
@@ -65,13 +65,13 @@ func MakeDemand(processId uint8, wait chan bool) {
 		send(network.Encode(request), k)
 	}
 
-    // Active wait until the pWait list is empty
-    for len(pWait) != 0 {
-    }
+	// Active wait until the pWait list is empty
+	for len(pWait) != 0 {
+	}
 
-    // Unlock client process
-    criticalSection = true
-    wait <- true
+	// Unlock client process
+	criticalSection = true
+	wait <- true
 }
 
 func EndDemand(processId uint8, val int32) {
@@ -80,7 +80,7 @@ func EndDemand(processId uint8, val int32) {
 	currentDemand = false
 
 	// We send the new value to everybody
-	for i := uint8(0); i < network.Params.NbProcesses ; i++ {
+	for i := uint8(0); i < network.Params.NbProcesses; i++ {
 		if processId != i {
 			val := network.SetVariable{
 				ReqType: network.SetValueMessageType,
@@ -103,6 +103,17 @@ func EndDemand(processId uint8, val int32) {
 
 	pWait = pDiff
 	pDiff = make(map[uint8]bool)
+}
+
+func CheckIfAllSitesAreReady(processId uint8) {
+	for i := uint8(0); i < network.Params.NbProcesses; i++ {
+		if i != processId {
+			recipientPort := strconv.Itoa(int(network.Params.InitialPort + uint16(i)))
+			recipientAddress := network.Params.ProcessAddress + ":" + recipientPort
+
+			network.AreYouThere(recipientAddress)
+		}
+	}
 }
 
 func OkReceive(ok network.MessageCS) {
