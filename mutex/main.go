@@ -15,13 +15,16 @@ from the client, forwarding them to the network manager and calling implementati
 package main
 
 import (
+	"../client"
+	"../network"
 	"encoding/json"
 	"fmt"
-	"github.com/Laykel/PRR-Lab2/client"
-	"github.com/Laykel/PRR-Lab2/network"
 	"os"
 	"strconv"
 )
+// List processes from which we need approval
+var pWait = make(map[uint8]bool)
+var pDiff = make(map[uint8]bool)
 
 // Path to json parameters file
 const parametersFile = "mutex/parameters.json"

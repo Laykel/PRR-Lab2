@@ -9,14 +9,13 @@ This file contains the implementation of the Carvalho-Roucairol algorithm.
 package main
 
 import (
-    "github.com/Laykel/PRR-Lab2/client"
-    "github.com/Laykel/PRR-Lab2/network"
-    "strconv"
+	"../client"
+	"../network"
+	"encoding/json"
+	"fmt"
+	"os"
+	"strconv"
 )
-
-// List processes from which we need approval
-var pWait = make(map[uint8]bool)
-var pDiff = make(map[uint8]bool)
 
 // Necessary algorithm variables
 var timestamp uint32
@@ -24,6 +23,22 @@ var demandTimestamp uint32
 var currentDemand bool
 
 var criticalSection bool
+
+func LoadConfiguration(file string) network.Parameters {
+    var params network.Parameters
+
+    // Read parameters file
+    configFile, err := os.Open(file)
+    if err != nil {
+        fmt.Println(err.Error())
+    }
+    defer configFile.Close()
+
+    jsonParser := json.NewDecoder(configFile)
+    jsonParser.Decode(&params)
+
+    return params
+}
 
 // Max returns the larger of x or y.
 func Max(x, y int64) int64 {
