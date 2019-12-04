@@ -95,18 +95,15 @@ func main() {
 		// Other site releases critical section via Network
 		case receivedMsg := <-message:
 			switch receivedMsg[0] {
-			case byte(network.ReqType):
-				fmt.Println("ReqType")
+			case byte(network.RequestMessageType):
 				req := network.DecodeRequest(receivedMsg)
 				go reqReceive(processId, req)
 
-			case byte(network.OkType):
-				fmt.Println("OkType")
+			case byte(network.ReleaseMessageType):
 				ok := network.DecodeRelease(receivedMsg)
 				go okReceive(ok)
 
-			case byte(network.ValType):
-				fmt.Println("ValType")
+			case byte(network.SetValueMessageType):
 				value := network.DecodeSetVariable(receivedMsg)
 				client.Shared = value.Value
 			}

@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	ReqType = 0
-	OkType  = 1
-	ValType = 2
+	RequestMessageType  = 0
+	ReleaseMessageType  = 1
+	SetValueMessageType = 2
 )
 
 // Read constants from parameters.json file

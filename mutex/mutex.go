@@ -40,7 +40,7 @@ func makeDemand(processId uint8, wait chan bool) {
 	// For every process in pWait
 	for k := range pWait {
 		request := network.RequestCS{
-			ReqType:    network.ReqType,
+			ReqType:    network.RequestMessageType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
 		}
@@ -49,7 +49,6 @@ func makeDemand(processId uint8, wait chan bool) {
 		network.Send(network.Encode(request), k)
 	}
 
-    // TODO check if this is legal in every Canton
     // Active wait until the pWait list is empty
     for len(pWait) != 0 {
     }
@@ -68,7 +67,7 @@ func endDemand(processId uint8, val int32) {
 	for i := uint8(0); i < network.Params.NbProcesses ; i++ {
 		if processId != i {
 			val := network.SetVariable{
-				ReqType: network.ValType,
+				ReqType: network.SetValueMessageType,
 				Value:   val,
 			}
 			network.Send(network.Encode(val), i)
@@ -77,7 +76,7 @@ func endDemand(processId uint8, val int32) {
 
 	for k := range pDiff {
 		ok := network.ReleaseCS{
-			ReqType:    network.OkType,
+			ReqType:    network.ReleaseMessageType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
 		}
@@ -101,7 +100,7 @@ func reqReceive(processId uint8, req network.RequestCS) {
 
 	if currentDemand == false {
 		ok := network.ReleaseCS{
-			ReqType:    network.OkType,
+			ReqType:    network.ReleaseMessageType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
 		}
@@ -114,12 +113,12 @@ func reqReceive(processId uint8, req network.RequestCS) {
 			pDiff[req.ProcessNbr] = true
 		} else {
 			val := network.SetVariable{
-				ReqType: network.ValType,
+				ReqType: network.SetValueMessageType,
 				Value:   client.Shared,
 			}
 
 			ok := network.ReleaseCS{
-				ReqType:    network.OkType,
+				ReqType:    network.ReleaseMessageType,
 				ProcessNbr: processId,
 				Timestamp:  timestamp,
 			}
@@ -130,7 +129,7 @@ func reqReceive(processId uint8, req network.RequestCS) {
 			pWait[req.ProcessNbr] = true
 
 			request := network.RequestCS{
-				ReqType:    network.ReqType,
+				ReqType:    network.RequestMessageType,
 				ProcessNbr: processId,
 				Timestamp:  timestamp,
 			}
