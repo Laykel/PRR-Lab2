@@ -77,7 +77,9 @@ func main() {
 	}
 
 	// Launch Server Process
-	go network.Listen(processId, message)
+    port := strconv.Itoa(int(network.Params.InitialPort + uint16(processId)))
+    address := network.Params.ProcessAddress+":"+port
+	go network.Listen(address, message)
 
 	// Launch Client Process
 	go client.PromptClient(demand, wait, end, quit)

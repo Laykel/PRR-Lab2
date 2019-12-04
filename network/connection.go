@@ -18,10 +18,9 @@ import (
 )
 
 // Main TCP server entrypoint
-func Listen(processNbr uint8, req chan []byte) {
-	// Listen on the current process' port
-	recipientPort := strconv.Itoa(int(Params.InitialPort + uint16(processNbr)))
-	listener, err := net.Listen("tcp", "127.0.0.1:"+recipientPort)
+func Listen(address string, req chan []byte) {
+	// Listen for incoming traffic
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,7 +28,7 @@ func Listen(processNbr uint8, req chan []byte) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Print(err)
+			log.Print("Error accepting connections: ", err)
 			continue
 		}
 		// Manage this connection without blocking so that we don't miss connections

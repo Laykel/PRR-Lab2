@@ -23,8 +23,9 @@ const (
 
 // Read constants from parameters.json file
 type Parameters struct {
-	InitialPort uint16 `json:"initial_port"`
-	NbProcesses uint8  `json:"nb_of_processes"`
+	InitialPort    uint16 `json:"initial_port"`
+	NbProcesses    uint8  `json:"nb_of_processes"`
+	ProcessAddress string `json:"process_address1"`
 }
 
 var Params Parameters
@@ -82,7 +83,6 @@ func DecodeRelease(buffer []byte) ReleaseCS {
 
 	return message
 }
-
 
 // Decode bytes from SetVariable back to struct
 func DecodeSetVariable(buffer []byte) SetVariable {

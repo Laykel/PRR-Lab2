@@ -1,4 +1,5 @@
 {
   "initial_port": 9706,
-  "nb_of_processes": 3
+  "nb_of_processes": 3,
+  "process_address1": "127.0.0.1"
 }
