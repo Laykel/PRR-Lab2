@@ -11,6 +11,7 @@ package main
 import (
     "github.com/Laykel/PRR-Lab2/client"
     "github.com/Laykel/PRR-Lab2/network"
+    "strconv"
 )
 
 // List processes from which we need approval
@@ -32,6 +33,13 @@ func Max(x, y int64) int64 {
 	return x
 }
 
+func send(message []byte, recipientId uint8) {
+    recipientPort := strconv.Itoa(int(network.Params.InitialPort + uint16(recipientId)))
+    recipientAddress := network.Params.ProcessAddress+":"+recipientPort
+
+    network.Send(message, recipientAddress)
+}
+
 func makeDemand(processId uint8, wait chan bool) {
 	timestamp++
 	currentDemand = true
@@ -46,7 +54,7 @@ func makeDemand(processId uint8, wait chan bool) {
 		}
 
 		// Encode message and send to recipient
-		network.Send(network.Encode(request), k)
+		send(network.Encode(request), k)
 	}
 
     // Active wait until the pWait list is empty
@@ -70,7 +78,7 @@ func endDemand(processId uint8, val int32) {
 				ReqType: network.SetValueMessageType,
 				Value:   val,
 			}
-			network.Send(network.Encode(val), i)
+			send(network.Encode(val), i)
 		}
 	}
 
@@ -82,7 +90,7 @@ func endDemand(processId uint8, val int32) {
 		}
 
 		// Encode message and send to recipient
-		network.Send(network.Encode(ok), k)
+		send(network.Encode(ok), k)
 	}
 
 	pWait = pDiff
@@ -106,7 +114,7 @@ func reqReceive(processId uint8, req network.RequestCS) {
 		}
 
 		// Encode message and send to recipient
-		network.Send(network.Encode(ok), req.ProcessNbr)
+		send(network.Encode(ok), req.ProcessNbr)
 		pWait[req.ProcessNbr] = true
 	} else {
 		if criticalSection || demandTimestamp < req.Timestamp || ((demandTimestamp == req.Timestamp) && (processId < req.ProcessNbr)) {
@@ -123,9 +131,9 @@ func reqReceive(processId uint8, req network.RequestCS) {
 				Timestamp:  timestamp,
 			}
 
-			network.Send(network.Encode(val), req.ProcessNbr)
+			send(network.Encode(val), req.ProcessNbr)
 			// Encode message and send to recipient
-			network.Send(network.Encode(ok), req.ProcessNbr)
+			send(network.Encode(ok), req.ProcessNbr)
 			pWait[req.ProcessNbr] = true
 
 			request := network.RequestCS{
@@ -135,7 +143,7 @@ func reqReceive(processId uint8, req network.RequestCS) {
 			}
 
 			// Encode message and send to recipient
-			network.Send(network.Encode(request), req.ProcessNbr)
+			send(network.Encode(request), req.ProcessNbr)
 		}
 	}
 }

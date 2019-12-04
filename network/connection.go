@@ -11,10 +11,9 @@ Source: https://go-talks.appspot.com/github.com/patricklac/prr-slides/ch2
 package network
 
 import (
-	"bufio"
-	"log"
-	"net"
-	"strconv"
+    "bufio"
+    "log"
+    "net"
 )
 
 // Main TCP server entrypoint
@@ -51,10 +50,9 @@ func handleConnection(conn net.Conn, req chan []byte) {
 }
 
 // Send bytes to recipient (port number calculated from initial port)
-func Send(message []byte, recipient uint8) {
+func Send(message []byte, address string) {
 	// Connect to recipient's server
-	recipientPort := strconv.Itoa(int(Params.InitialPort + uint16(recipient)))
-	conn, err := net.Dial("tcp", "127.0.0.1:"+recipientPort)
+	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		log.Fatal(err)
 	}
