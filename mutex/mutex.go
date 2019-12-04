@@ -6,7 +6,7 @@ Go version: 1.13.4 (linux/amd64)
 
 This file contains the implementation of the Carvalho-Roucairol algorithm.
 */
-package main
+package mutex
 
 import (
 	"../client"
@@ -48,6 +48,13 @@ func Max(x, y int64) int64 {
 	return x
 }
 
+func PopulatePWait(processId uint8) {
+	// Populate pWait
+	for i := processId+1; i < network.Params.NbProcesses; i++ {
+			pWait[i] = true
+	}
+}
+
 // Calculate proper address and forward to network
 func send(message []byte, recipientId uint8) {
     recipientPort := strconv.Itoa(int(network.Params.InitialPort + uint16(recipientId)))
@@ -56,14 +63,14 @@ func send(message []byte, recipientId uint8) {
     network.Send(message, recipientAddress)
 }
 
-func makeDemand(processId uint8, wait chan bool) {
+func MakeDemand(processId uint8, wait chan bool) {
 	timestamp++
 	currentDemand = true
 	demandTimestamp = timestamp
 
 	// For every process in pWait
 	for k := range pWait {
-		request := network.RequestCS{
+		request := network.MessageCS{
 			ReqType:    network.RequestMessageType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
@@ -82,7 +89,7 @@ func makeDemand(processId uint8, wait chan bool) {
     wait <- true
 }
 
-func endDemand(processId uint8, val int32) {
+func EndDemand(processId uint8, val int32) {
 	timestamp++
 	criticalSection = false
 	currentDemand = false
@@ -99,7 +106,7 @@ func endDemand(processId uint8, val int32) {
 	}
 
 	for k := range pDiff {
-		ok := network.ReleaseCS{
+		ok := network.MessageCS{
 			ReqType:    network.ReleaseMessageType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
@@ -113,17 +120,17 @@ func endDemand(processId uint8, val int32) {
 	pDiff = make(map[uint8]bool)
 }
 
-func okReceive(ok network.ReleaseCS) {
+func OkReceive(ok network.MessageCS) {
 	timestamp = uint32(Max(int64(timestamp), int64(ok.Timestamp)) + 1)
 
 	delete(pWait, ok.ProcessNbr)
 }
 
-func reqReceive(processId uint8, req network.RequestCS) {
+func ReqReceive(processId uint8, req network.MessageCS) {
 	timestamp = uint32(Max(int64(timestamp), int64(req.Timestamp)) + 1)
 
 	if currentDemand == false {
-		ok := network.ReleaseCS{
+		ok := network.MessageCS{
 			ReqType:    network.ReleaseMessageType,
 			ProcessNbr: processId,
 			Timestamp:  timestamp,
@@ -141,7 +148,7 @@ func reqReceive(processId uint8, req network.RequestCS) {
 				Value:   client.Shared,
 			}
 
-			ok := network.ReleaseCS{
+			ok := network.MessageCS{
 				ReqType:    network.ReleaseMessageType,
 				ProcessNbr: processId,
 				Timestamp:  timestamp,
@@ -152,7 +159,7 @@ func reqReceive(processId uint8, req network.RequestCS) {
 			send(network.Encode(ok), req.ProcessNbr)
 			pWait[req.ProcessNbr] = true
 
-			request := network.RequestCS{
+			request := network.MessageCS{
 				ReqType:    network.RequestMessageType,
 				ProcessNbr: processId,
 				Timestamp:  timestamp,

@@ -15,19 +15,29 @@ from the client, forwarding them to the network manager and calling implementati
 package main
 
 import (
+<<<<<<< HEAD:mutex/main.go
 	"../client"
 	"../network"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
+=======
+    "encoding/json"
+    "fmt"
+    "github.com/Laykel/PRR-Lab2/client"
+    "github.com/Laykel/PRR-Lab2/mutex"
+    "github.com/Laykel/PRR-Lab2/network"
+    "os"
+    "strconv"
+>>>>>>> 2e2c39192c4c3a83f58f5e1ab564e97c8da4c5dc:main/main.go
 )
 // List processes from which we need approval
 var pWait = make(map[uint8]bool)
 var pDiff = make(map[uint8]bool)
 
 // Path to json parameters file
-const parametersFile = "mutex/parameters.json"
+const parametersFile = "main/parameters.json"
 
 // Load parameters from json file
 func loadParameters(file string) network.Parameters {
@@ -72,12 +82,7 @@ func main() {
 	// Read parameters from json file
 	network.Params = loadParameters(parametersFile)
 
-	// Populate pWait
-	for i := uint8(0); i < network.Params.NbProcesses; i++ {
-		if i != processId {
-			pWait[i] = true
-		}
-	}
+	mutex.PopulatePWait(processId)
 
 	// Launch Server Process
     port := strconv.Itoa(int(network.Params.InitialPort + uint16(processId)))
@@ -91,22 +96,22 @@ func main() {
 		select {
 		// Client asks for critical section
 		case <-demand:
-			go makeDemand(processId, wait)
+			go mutex.MakeDemand(processId, wait)
 
         // Client releases critical section
 		case val := <-end:
-			go endDemand(processId, val)
+			go mutex.EndDemand(processId, val)
 
 		// Other site releases critical section via Network
 		case receivedMsg := <-message:
 			switch receivedMsg[0] {
 			case byte(network.RequestMessageType):
-				req := network.DecodeRequest(receivedMsg)
-				go reqReceive(processId, req)
+				req := network.DecodeMessage(receivedMsg)
+				go mutex.ReqReceive(processId, req)
 
 			case byte(network.ReleaseMessageType):
-				ok := network.DecodeRelease(receivedMsg)
-				go okReceive(ok)
+				ok := network.DecodeMessage(receivedMsg)
+				go mutex.OkReceive(ok)
 
 			case byte(network.SetValueMessageType):
 				value := network.DecodeSetVariable(receivedMsg)
