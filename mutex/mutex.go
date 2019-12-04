@@ -9,8 +9,8 @@ This file contains the implementation of the Carvalho-Roucairol algorithm.
 package mutex
 
 import (
-    "../client"
-    "../network"
+    "github.com/Laykel/PRR-Lab2/client"
+    "github.com/Laykel/PRR-Lab2/network"
     "strconv"
 )
 
@@ -35,10 +35,8 @@ func Max(x, y int64) int64 {
 
 func PopulatePWait(processId uint8) {
 	// Populate pWait
-	for i := uint8(0); i < network.Params.NbProcesses; i++ {
-		if i != processId {
+	for i := processId+1; i < network.Params.NbProcesses; i++ {
 			pWait[i] = true
-		}
 	}
 }
 
