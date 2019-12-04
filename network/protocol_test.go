@@ -42,7 +42,7 @@ func TestEncode(t *testing.T) {
 	}
 }
 
-func TestDecodeRequest(t *testing.T) {
+func TestDecodeMessage(t *testing.T) {
 	// Describe test cases
 	tests := []struct {
 		name   string
@@ -54,43 +54,21 @@ func TestDecodeRequest(t *testing.T) {
 			[]byte{0, 28, 0, 0, 0, 12},
             MessageCS{RequestMessageType, 28, 12},
 		},
-	}
-
-	// Run test cases
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := DecodeRequest(test.buffer)
-
-			// Compare result with wanted result
-			if !reflect.DeepEqual(got, test.want) {
-				t.Errorf("DecodeRequest() got %v, want %v", got, test.want)
-			}
-		})
-	}
-}
-
-func TestDecodeRelease(t *testing.T) {
-	// Describe test cases
-	tests := []struct {
-		name   string
-		buffer []byte
-		want   MessageCS
-	}{
-		{
-			"Test decoding release message",
-			[]byte{1, 34, 0, 0, 0, 12},
+        {
+            "Test decoding release message",
+            []byte{1, 34, 0, 0, 0, 12},
             MessageCS{ReleaseMessageType, 34, 12},
-		},
+        },
 	}
 
 	// Run test cases
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got := DecodeRelease(test.buffer)
+			got := DecodeMessage(test.buffer)
 
 			// Compare result with wanted result
 			if !reflect.DeepEqual(got, test.want) {
-				t.Errorf("DecodeRelease() got %v, want %v", got, test.want)
+				t.Errorf("DecodeMessage() got %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -117,7 +95,7 @@ func TestDecodeSetVariable(t *testing.T) {
 
 			// Compare result with wanted result
 			if !reflect.DeepEqual(got, test.want) {
-				t.Errorf("DecodeRelease() got %v, want %v", got, test.want)
+				t.Errorf("DecodeMessage() got %v, want %v", got, test.want)
 			}
 		})
 	}

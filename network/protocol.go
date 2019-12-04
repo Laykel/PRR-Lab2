@@ -56,18 +56,7 @@ func Encode(message interface{}) []byte {
 }
 
 // Decode bytes from MessageCS back to struct
-func DecodeRequest(buffer []byte) MessageCS {
-	message := MessageCS{}
-	err := binary.Read(bytes.NewReader(buffer), binary.BigEndian, &message)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return message
-}
-
-// Decode bytes from MessageCS back to struct
-func DecodeRelease(buffer []byte) MessageCS {
+func DecodeMessage(buffer []byte) MessageCS {
 	message := MessageCS{}
 	err := binary.Read(bytes.NewReader(buffer), binary.BigEndian, &message)
 	if err != nil {

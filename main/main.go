@@ -94,11 +94,11 @@ func main() {
 		case receivedMsg := <-message:
 			switch receivedMsg[0] {
 			case byte(network.RequestMessageType):
-				req := network.DecodeRequest(receivedMsg)
+				req := network.DecodeMessage(receivedMsg)
 				go mutex.ReqReceive(processId, req)
 
 			case byte(network.ReleaseMessageType):
-				ok := network.DecodeRelease(receivedMsg)
+				ok := network.DecodeMessage(receivedMsg)
 				go mutex.OkReceive(ok)
 
 			case byte(network.SetValueMessageType):
