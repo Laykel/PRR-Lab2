@@ -49,7 +49,7 @@ func handleConnection(conn net.Conn, req chan []byte) {
 	req <- message
 }
 
-// Send bytes to recipient (port number calculated from initial port)
+// Send bytes to recipient
 func Send(message []byte, address string) {
 	// Connect to recipient's server
 	conn, err := net.Dial("tcp", address)

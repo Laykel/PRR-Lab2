@@ -2,11 +2,10 @@ package network
 
 import (
     "net"
-    "strconv"
     "testing"
 )
 
-var serverAddress = "127.0.0.1:"+strconv.Itoa(int(Params.InitialPort))
+var serverAddress = "127.0.0.1:9706"
 
 func init() {
     // Start TCP server
@@ -19,7 +18,6 @@ func TestTCPServerListen(t *testing.T) {
     conn, err := net.Dial("tcp", serverAddress)
     if err != nil {
         t.Error("Error connecting to TCP server: ", err)
-        return
     }
     defer conn.Close()
 }

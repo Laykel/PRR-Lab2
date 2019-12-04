@@ -33,6 +33,7 @@ func Max(x, y int64) int64 {
 	return x
 }
 
+// Calculate proper address and forward to network
 func send(message []byte, recipientId uint8) {
     recipientPort := strconv.Itoa(int(network.Params.InitialPort + uint16(recipientId)))
     recipientAddress := network.Params.ProcessAddress+":"+recipientPort
