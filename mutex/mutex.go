@@ -6,11 +6,11 @@ Go version: 1.13.4 (linux/amd64)
 
 This file contains the implementation of the Carvalho-Roucairol algorithm.
 */
-package main
+package mutex
 
 import (
-    "github.com/Laykel/PRR-Lab2/client"
-    "github.com/Laykel/PRR-Lab2/network"
+    "../client"
+    "../network"
     "strconv"
 )
 
@@ -33,6 +33,15 @@ func Max(x, y int64) int64 {
 	return x
 }
 
+func PopulatePWait(processId uint8) {
+	// Populate pWait
+	for i := uint8(0); i < network.Params.NbProcesses; i++ {
+		if i != processId {
+			pWait[i] = true
+		}
+	}
+}
+
 // Calculate proper address and forward to network
 func send(message []byte, recipientId uint8) {
     recipientPort := strconv.Itoa(int(network.Params.InitialPort + uint16(recipientId)))
@@ -41,7 +50,7 @@ func send(message []byte, recipientId uint8) {
     network.Send(message, recipientAddress)
 }
 
-func makeDemand(processId uint8, wait chan bool) {
+func MakeDemand(processId uint8, wait chan bool) {
 	timestamp++
 	currentDemand = true
 	demandTimestamp = timestamp
@@ -67,7 +76,7 @@ func makeDemand(processId uint8, wait chan bool) {
     wait <- true
 }
 
-func endDemand(processId uint8, val int32) {
+func EndDemand(processId uint8, val int32) {
 	timestamp++
 	criticalSection = false
 	currentDemand = false
@@ -98,13 +107,13 @@ func endDemand(processId uint8, val int32) {
 	pDiff = make(map[uint8]bool)
 }
 
-func okReceive(ok network.ReleaseCS) {
+func OkReceive(ok network.ReleaseCS) {
 	timestamp = uint32(Max(int64(timestamp), int64(ok.Timestamp)) + 1)
 
 	delete(pWait, ok.ProcessNbr)
 }
 
-func reqReceive(processId uint8, req network.RequestCS) {
+func ReqReceive(processId uint8, req network.RequestCS) {
 	timestamp = uint32(Max(int64(timestamp), int64(req.Timestamp)) + 1)
 
 	if currentDemand == false {
