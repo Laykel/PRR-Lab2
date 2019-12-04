@@ -1,8 +1,8 @@
 package network
 
 import (
-	"reflect"
-	"testing"
+    "reflect"
+    "testing"
 )
 
 func TestEncode(t *testing.T) {
@@ -21,6 +21,11 @@ func TestEncode(t *testing.T) {
 			"Test ReleaseCS message encoding",
 			ReleaseCS{OkType, 56, 3},
 			[]byte{1, 56, 0, 0, 0, 3},
+		},
+		{
+			"Test SetVariable message encoding",
+			SetVariable{ValType, 456},
+			[]byte{2, 0, 0, 1, 200},
 		},
 	}
 
@@ -82,6 +87,33 @@ func TestDecodeRelease(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			got := DecodeRelease(test.buffer)
+
+			// Compare result with wanted result
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("DecodeRelease() got %v, want %v", got, test.want)
+			}
+		})
+	}
+}
+
+func TestDecodeSetVariable(t *testing.T) {
+	// Describe test cases
+	tests := []struct {
+		name   string
+		buffer []byte
+		want   SetVariable
+	}{
+		{
+			"Test decoding SetVariable message",
+			[]byte{2, 0, 0, 0, 12},
+			SetVariable{ValType, 12},
+		},
+	}
+
+	// Run test cases
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := DecodeSetVariable(test.buffer)
 
 			// Compare result with wanted result
 			if !reflect.DeepEqual(got, test.want) {
