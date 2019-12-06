@@ -9,12 +9,12 @@ This file contains the implementation of the Carvalho-Roucairol algorithm.
 package mutex
 
 import (
-	"../client"
-	"../network"
-	"encoding/json"
-	"fmt"
-	"os"
-	"strconv"
+    "encoding/json"
+    "fmt"
+    "github.com/Laykel/PRR-Lab2/client"
+    "github.com/Laykel/PRR-Lab2/network"
+    "os"
+    "strconv"
 )
 
 // List processes from which we need approval

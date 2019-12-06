@@ -15,13 +15,13 @@ from the client, forwarding them to the network manager and calling implementati
 package main
 
 import (
-	"../client"
-	"../mutex"
-	"../network"
-	"encoding/json"
-	"fmt"
-	"os"
-	"strconv"
+    "encoding/json"
+    "fmt"
+    "github.com/Laykel/PRR-Lab2/client"
+    "github.com/Laykel/PRR-Lab2/mutex"
+    "github.com/Laykel/PRR-Lab2/network"
+    "os"
+    "strconv"
 )
 
 // Path to json parameters file
